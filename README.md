@@ -23,5 +23,5 @@ In discord type in your prefix followed by `addadmincommand addadmincommand` fol
 #### OR
 Open the `settings.json` file and add `"settings": ["role1","role2",...]` inside the {} for admincommands.
 
-##Setting a default channel
+## Setting a default channel
 Open the `Resources/ModuleResources/tournyOW.json` and chnage the X's for defaultChannel with the name of the voice channel that you want to be the default.
