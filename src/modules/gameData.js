@@ -6,6 +6,7 @@ var gameData = {};
 const path = "SaveData/savedata.json";
 const settings = JSON.parse(fs.readFileSync("Resources/ModuleResources/gameData.json"));
 const ignoreGames = settings["ignoreGames"];
+runEachMin();
 
 exports.commands = {
     "games": (msg) => {
@@ -19,7 +20,6 @@ exports.commands = {
 exports.setRefs = (refs) => {
     bot = refs.bot;
     prefix = refs.prefix;
-    runEachMin();
 }
 
 exports.getHelp = () => {
