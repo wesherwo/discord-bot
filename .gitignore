@@ -59,3 +59,9 @@ typings/
 
 # next.js build output
 .next
+
+# Untracked files
+settings.json
+Resources/ModuleResources/awards.json
+Resources/ModuleResources/gameData.json
+Resources/ModuleResources/tournyOW.json

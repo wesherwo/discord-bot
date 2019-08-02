@@ -1,5 +1,34 @@
 {
-    "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "token": "NDQ4ODcxNDk2NDQyNTc2OTA2.DecbrQ.gaHdJ0s1A0eYwW5c5bEsHtx5qBA",
     "prefix": "!",
-    "admincommands": {}
+    "admincommands": {
+        "settings": [
+            "King",
+            "Queen"
+        ],
+        "kick": [
+            "King",
+            "Queen"
+        ],
+        "maketeams": [
+            "King",
+            "Queen"
+        ],
+        "makematches": [
+            "King",
+            "Queen"
+        ],
+        "moveplayers": [
+            "King",
+            "Queen"
+        ],
+        "clear": [
+            "King",
+            "Queen"
+        ],
+        "test": [
+            "Queen",
+            "King"
+        ]
+    }
 }
