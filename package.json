@@ -1,0 +1,10 @@
+{
+    "name": "alchemy0909-discord-bot",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Discord bot that does stuff and things",
+    "dependencies": {
+        "discord.js": "11.5.1"
+    },
+    "repository": {}
+}
