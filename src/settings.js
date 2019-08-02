@@ -109,7 +109,13 @@ function printAdminCommands(msg) {
 		}
 	};
 	for (var cmd in adminCommands) {
-		tosend.embed.fields.push({ name: "" + prefix + cmd, value: adminCommands[cmd].sort().toString() });
+		if(cmd == "settings"){
+			for(var cmdset in settingCommands) {
+				tosend.embed.fields.push({ name: "" + prefix + cmdset, value: addAdminCommand[cmd].sort().toString() });
+			}
+		} else {
+			tosend.embed.fields.push({ name: "" + prefix + cmd, value: adminCommands[cmd].sort().toString() });
+		}
 	}
 	msg.channel.send(tosend);
 }
