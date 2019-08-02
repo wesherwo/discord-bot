@@ -77,15 +77,6 @@ function resetData(msg) {
     msg.channel.send("Game stats reset.");
 }
 
-function getIndex(arr, id) {
-    for (var i = 0; i < arr.length; i++) {
-        if (id == arr[i][0]) {
-            return i;
-        }
-    }
-    return -1;
-}
-
 function printTime(time) {
     var hours = parseInt(time / 60);
     var minutes = time % 60;
@@ -98,6 +89,9 @@ function makeEmbed(data) {
         sorted.push([game,data[game]]);
     }
     sorted.sort(function (a,b) { return b[1] - a[1]});
+    if(sorted.length == 0){
+        return "No data yet.";
+    }
     var max = sorted[0][1];
     let s = '';
     for (var i = 0; i < sorted.length; i++) {
