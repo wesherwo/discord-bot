@@ -6,7 +6,7 @@ var gameData = {};
 const path = "SaveData/savedata.json";
 const settings = JSON.parse(fs.readFileSync("Resources/ModuleResources/gameData.json"));
 const ignoreGames = settings["ignoreGames"];
-runEachMin();
+setTimeout(runEachMin, 60000);
 
 exports.commands = {
     "games": (msg) => {
