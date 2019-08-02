@@ -270,7 +270,7 @@ function makeTeams(msg) {
 function makeChannels(msg) {
 	for (var i = 0; i < teams.length; i++) {
 		if (bot.channels.find("name", teamNames[i]) == null) {
-			msg.guild.createChannel(teamNames[i], "voice");
+			msg.guild.createChannel(teamNames[i], {type:"voice"});
 		}
 	}
 }
