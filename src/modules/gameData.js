@@ -69,7 +69,7 @@ function printGameData(msg) {
     var data = JSON.parse(fs.readFileSync(path));
     var sorted = [];
     for(var game in data.gametime){
-        sorted.push([game,dat.gametime[game]]);
+        sorted.push([game,data.gametime[game]]);
     }
     sorted.sort(function (a,b) { return b[1] - a[1]});
     if(sorted.length == 0){
