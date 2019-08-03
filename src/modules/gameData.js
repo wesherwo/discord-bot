@@ -78,7 +78,7 @@ function printGameData(msg) {
     var max = sorted[0][1];
 
     let s = '';
-    let tosend = {
+    var tosend = {
 		embed: {
 			color: 3447003,
 			title: "Bot running for " + printTime(data.time),
