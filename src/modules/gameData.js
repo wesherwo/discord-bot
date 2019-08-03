@@ -93,12 +93,12 @@ function printGameData(msg) {
                 s += String.fromCharCode(10074);
             }
             tosend.embed.fields.push({name:sorted[i][0] + " - played for " + printTime(sorted[i][1]),value:s});
-        }
-        if((tosend.embed.fields.length % 20 == 0 || i == sorted.length - 1) && tosend.embed.fields.length > 0){
-            msg.channel.send(tosend);
-            tosend.embed.title = "page " + page;
-            page++;
-            tosend.embed.fields = [];
+            if((tosend.embed.fields.length % 20 == 0 || i == sorted.length - 1) && tosend.embed.fields.length > 0){
+                msg.channel.send(tosend);
+                tosend.embed.title = "page " + page;
+                page++;
+                tosend.embed.fields = [];
+            }
         }
     }
 }
