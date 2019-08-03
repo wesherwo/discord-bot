@@ -19,15 +19,17 @@ exports.setRefs = (refs) => {
 }
 
 function makeChannel(msg) {
-    var name = msg.content.substr(msg.content.indexOf(' '));
+    var name = msg.content.substr(msg.content.indexOf(' ')+1);
     msg.guild.createChannel(name, {type:"voice"});
-    setTimeout(moveUser(msg, name), 1500);
+    setTimeout(moveUser(msg, name), 1000);
 }
 
 function moveUser(msg, name) {
     return function () {
-        var chan = bot.channels.find(val => val.name === name);
-        msg.member.setVoiceChannel(chan);
+        var chan = chan = bot.channels.find(val => val.name === name);
+        if(msg.member.voiceChannel != null){
+            msg.member.setVoiceChannel(chan);
+        }
         setTimeout(checkIfEmpty(chan), 2500);
     }
 }
