@@ -67,22 +67,6 @@ function calcGameData(ppl) {
 
 function printGameData(msg) {
     var data = JSON.parse(fs.readFileSync(path));
-    makeEmbed(data);
-}
-
-function resetData(msg) {
-    var jsonData = JSON.stringify({ "time": 0, "gametime": {} });
-    fs.writeFileSync(path, jsonData, function (err) { if (err) { console.log(err); } });
-    msg.channel.send("Game stats reset.");
-}
-
-function printTime(time) {
-    var hours = parseInt(time / 60);
-    var minutes = time % 60;
-    return hours + "hr" + minutes + "min";
-}
-
-function makeEmbed(data) {
     var sorted = [];
     for(var game in data.gametime){
         sorted.push([game,data[game]]);
@@ -111,4 +95,16 @@ function makeEmbed(data) {
         }
     }
     msg.channel.send(tosend);
+}
+
+function resetData(msg) {
+    var jsonData = JSON.stringify({ "time": 0, "gametime": {} });
+    fs.writeFileSync(path, jsonData, function (err) { if (err) { console.log(err); } });
+    msg.channel.send("Game stats reset.");
+}
+
+function printTime(time) {
+    var hours = parseInt(time / 60);
+    var minutes = time % 60;
+    return hours + "hr" + minutes + "min";
 }
