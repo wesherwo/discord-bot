@@ -19,7 +19,7 @@ exports.setRefs = (refs) => {
 }
 
 function makeChannel(msg) {
-    var name = msg.content.split(' ')[1];
+    var name = msg.content.substr(msg.content.indexOf(' '));
     msg.guild.createChannel(name, {type:"voice"});
     setTimeout(moveUser(msg, name), 1500);
 }

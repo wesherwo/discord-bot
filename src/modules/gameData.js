@@ -67,8 +67,7 @@ function calcGameData(ppl) {
 
 function printGameData(msg) {
     var data = JSON.parse(fs.readFileSync(path));
-    msg.channel.send("Bot running for " + printTime(data.time));
-    msg.channel.send(makeEmbed(data.gametime));
+    makeEmbed(data);
 }
 
 function resetData(msg) {
@@ -85,7 +84,7 @@ function printTime(time) {
 
 function makeEmbed(data) {
     var sorted = [];
-    for(var game in data){
+    for(var game in data.gametime){
         sorted.push([game,data[game]]);
     }
     sorted.sort(function (a,b) { return b[1] - a[1]});
@@ -93,18 +92,23 @@ function makeEmbed(data) {
         return "No data yet.";
     }
     var max = sorted[0][1];
+
     let s = '';
+    let tosend = {
+		embed: {
+			color: 3447003,
+			title: "Bot running for " + printTime(data.time),
+			fields: []
+		}
+	};
     for (var i = 0; i < sorted.length; i++) {
-        var name = sorted[i][0];
-        if (ignoreGames.indexOf(name) == -1) {
-            s += sorted[i][0] + " - played for " + printTime(sorted[i][1]) + "\n";
+        if (ignoreGames.indexOf(sorted[i][0]) == -1) {
+            s = "";
             for (var j = 0; (j < (sorted[i][1] / max) * 40) || (j < 1); j++) {
                 s += String.fromCharCode(10074);
             }
-            s += "\n";
+            tosend.embed.fields.push({name:sorted[i][0] + " - played for " + printTime(sorted[i][1]),value:s})
         }
     }
-    let embed = new Discord.RichEmbed()
-    embed.setColor(13632027).setDescription(s);
-    return embed;
+    msg.channel.send(tosend);
 }
