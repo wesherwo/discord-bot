@@ -69,7 +69,7 @@ function printGameData(msg) {
     var data = JSON.parse(fs.readFileSync(path));
     var sorted = [];
     for(var game in data.gametime){
-        sorted.push([game,data[game]]);
+        sorted.push([game,dat.gametime[game]]);
     }
     sorted.sort(function (a,b) { return b[1] - a[1]});
     if(sorted.length == 0){
@@ -84,14 +84,21 @@ function printGameData(msg) {
 			title: "Bot running for " + printTime(data.time),
 			fields: []
 		}
-	};
+    };
+    let page = 2;
     for (var i = 0; i < sorted.length; i++) {
         if (ignoreGames.indexOf(sorted[i][0]) == -1) {
             s = "";
             for (var j = 0; (j < (sorted[i][1] / max) * 40) || (j < 1); j++) {
                 s += String.fromCharCode(10074);
             }
-            tosend.embed.fields.push({name:sorted[i][0] + " - played for " + printTime(sorted[i][1]),value:s})
+            tosend.embed.fields.push({name:sorted[i][0] + " - played for " + printTime(sorted[i][1]),value:s});
+            if(i % 25 == 0){
+                msg.channel.send(tosend);
+                tosend.embed.title = "page " + page;
+                page++;
+                tosend.embed.fields = [];
+            }
         }
     }
     msg.channel.send(tosend);
