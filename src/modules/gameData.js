@@ -77,7 +77,7 @@ function printGameData(msg) {
     }
     var max = sorted[0][1];
 
-    let s = '';
+    var s = '';
     var tosend = {
 		embed: {
 			color: 3447003,
@@ -85,7 +85,7 @@ function printGameData(msg) {
 			fields: []
 		}
     };
-    let page = 1;
+    var page = 1;
     for (var i = 0; i < sorted.length; i++) {
         if (ignoreGames.indexOf(sorted[i][0]) == -1) {
             s = "";
@@ -96,6 +96,7 @@ function printGameData(msg) {
         }
         if((tosend.embed.fields.length % 20 == 0 || i == sorted.length - 1) && tosend.embed.fields.length > 0){
             msg.channel.send(tosend);
+            page++;
             tosend = {
                 embed: {
                     color: 3447003,
@@ -103,7 +104,6 @@ function printGameData(msg) {
                     fields: []
                 }
             };
-            page++;
         }
     }
 }

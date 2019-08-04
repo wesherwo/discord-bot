@@ -31,6 +31,7 @@ function moveUser(msg, name) {
             msg.member.setVoiceChannel(chan);
         }
         setTimeout(checkIfEmpty(chan), 2500);
+        return;
     }
 }
 
@@ -41,5 +42,6 @@ function checkIfEmpty(chan) {
             return;
         }
         setTimeout(checkIfEmpty(chan), 2500);
+        return;
     }
 }
