@@ -30,18 +30,23 @@ exports.startup = () => {
 
 function makeChannelByJoin(member) {
     var name = member.nickname;
+    if (name == null) {
+        name = member.user.username;
+    }
+    name += "'s VC";
     makeChannel(member, name);
 }
 
 function makeChannelByMsg(msg) {
     var name = msg.content.split(" ")[1];
+    if (name == null) {
+        name = member.user.username;
+        name += "'s VC";
+    }
     makeChannel(msg.member, name);
 }
 
 function makeChannel(member, name) {
-    if (name == null) {
-        name = member.user.username;
-    }
     bot.guilds.array()[0].createChannel(name, { type: "voice" }).then(chan => { moveUser(member, chan); });
 }
 
