@@ -2,10 +2,11 @@ const Discord = require('discord.js');
 
 var bot;
 var prefix;
+var userChannelCategorey;
 
 exports.commands = {
     'makechannel': (msg) => {
-        makeChannel(msg);
+        makeChannelByMsg(msg);
     }
 }
 
@@ -18,21 +19,39 @@ exports.setRefs = (refs) => {
     prefix = refs.prefix;
 }
 
-function makeChannel(msg) {
-    var name = msg.content.substr(msg.content.indexOf(' ')+1);
-    msg.guild.createChannel(name, {type:"voice"});
-    setTimeout(moveUser(msg, name), 1000);
+exports.startup = () => {
+    userChannelCategorey = bot.channels.find(val => val.name === "Join to create channel");
+    bot.on("voiceStateUpdate", (oldMember, newMember) => {
+        if (newMember.voiceChannel != null && newMember.voiceChannel.id == userChannelCategorey.id) {
+            makeChannelByJoin(newMember);
+        }
+    });
 }
 
-function moveUser(msg, name) {
-    return function () {
-        var chan = chan = bot.channels.find(val => val.name === name);
-        if(msg.member.voiceChannel != null){
-            msg.member.setVoiceChannel(chan);
-        }
-        setTimeout(checkIfEmpty(chan), 2500);
-        return;
+function makeChannelByJoin(member) {
+    var name = member.nickname;
+    makeChannel(member, name);
+}
+
+function makeChannelByMsg(msg) {
+    var name = msg.content.split(" ")[1];
+    makeChannel(msg.member, name);
+}
+
+function makeChannel(member, name) {
+    if (name == null) {
+        name = member.user.username;
     }
+    bot.guilds.array()[0].createChannel(name, { type: "voice" }).then(chan => { moveUser(member, chan); });
+}
+
+function moveUser(member, chan) {
+    chan.setParent(userChannelCategorey.parent);
+    if (member.voiceChannel != null) {
+        member.setVoiceChannel(chan);
+    }
+    setTimeout(checkIfEmpty(chan), 2500);
+    return;
 }
 
 function checkIfEmpty(chan) {

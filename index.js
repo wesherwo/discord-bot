@@ -22,6 +22,7 @@ function setUp() {
 				modules.push(require(modulePath + mod));
 		});
 		updateModules();
+		startModules();
 		for (var cmd in settings.commands) {
 			commands[cmd] = settings.commands[cmd];
 		}
@@ -40,6 +41,14 @@ function updateModules() {
 				"bot": bot,
 				"prefix": settings.prefix()
 			});
+		}
+	});
+}
+
+function startModules() {
+	modules.forEach(function (mod) {
+		if (typeof mod.startup !== "undefined") {
+			mod.startup();
 		}
 	});
 }
