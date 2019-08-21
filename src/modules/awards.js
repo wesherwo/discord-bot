@@ -2,6 +2,8 @@ const Discord = require('discord.js');
 const fs = require("fs");
 const vm = require('./srcAwards/voiceMessages.js');
 
+var botcmds;
+
 const ppl = [];
 //name, msgs
 const promises = [];
@@ -30,13 +32,40 @@ exports.commands = {
     }
 }
 
-exports.getHelp = () => { 
-    return [{name:prefix + "awards",value:"Give awards!"}];
+exports.getHelp = () => {
+    return [{ name: prefix + "awards", value: "Give awards!" }];
 }
 
 exports.setRefs = (refs) => {
-	bot = refs.bot;
+    bot = refs.bot;
     prefix = refs.prefix;
+}
+
+exports.startup = () => {
+    botcmds = bot.channels.find(val => val.name === "bot-cmds");
+    if (botcmds == null) {
+        var guild = bot.guilds.array()[0];
+        guild.createChannel("bot-cmds", { type: "text" });
+    }
+    bot.on("voiceStateUpdate", (oldMember, newMember) => {
+        voiceUpdate(oldMember, newMember);
+    });
+}
+
+function voiceUpdate(oldmember, newmember) {
+    if(oldmember.voiceChannel == newmember.voiceChannel){
+        return;
+    }
+    let embed = new Discord.RichEmbed();
+    embed.setColor(13632027).setAuthor(oldmember.displayName, oldmember.user.displayAvatarURL).setTimestamp();
+    if(oldmember.voiceChannel == null && newmember.voiceChannel != null){
+        embed.setDescription("<@" + oldmember.id + "> joined voice channel `#" + newmember.voiceChannel.name + "`");
+    } else if(newmember.voiceChannel == null && oldmember.voiceChannel != null) {
+        embed.setDescription("<@" + oldmember.id + "> left voice channel `#" + oldmember.voiceChannel.name + "`");
+    } else {
+        embed.setDescription("<@" + oldmember.id + "> switched voice channel `#" + oldmember.voiceChannel.name + "` -> `#" + newmember.voiceChannel.name + "`");
+    }
+    botcmds.send(embed);
 }
 
 function giveAwards(msg) {
@@ -76,7 +105,7 @@ function computeMsgs(messages, mynum) {
     for (var i = 0; i < messages.length; i++) {
         if (messages[i].createdAt >= getLastMonth() && !ignorePerson(messages[i].author) && !ignoreCh(messages[i].channel)) {
             allMessages.push(messages[i]);
-        } else if (messages[i].createdAt >= getLastMonth() && messages[i].author.id == 336221926060195850) {
+        } else if (messages[i].createdAt >= getLastMonth() && messages[i].author.id == bot.user.id) {
             allBotMessages.push(messages[i]);
         }
     }

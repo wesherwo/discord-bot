@@ -8,6 +8,8 @@ Run `npm install` to install required dependancies.
 
 ## Setting up a bot
 Go to https://discordapp.com/developers/applications/ and create a new application.
+Next go to OAuth2 and under scopes select bot.
+Go to the link under scopes and add the bot to your server.
 Navigate to the Bot tab under settings.
 Click to reveal your token and copy it.
 

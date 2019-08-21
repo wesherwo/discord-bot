@@ -29,13 +29,14 @@ exports.getLongestPartyKing = () => {
 }
 
 function getMostTime() {
-    pplTime.sort(function(a, b){return b[1] - a[1]});
+    pplTime.sort(function (a, b) { return b[1] - a[1] });
+    console.log(pplTime);
     longestTime[0] = pplTime[0];
     longestTime[1] = pplTime[1];
-    pplLonlyTime.sort(function(a, b){return b[1] - a[1]});
+    pplLonlyTime.sort(function (a, b) { return b[1] - a[1] });
     longestLonlyTime[0] = pplLonlyTime[0];
     longestLonlyTime[1] = pplLonlyTime[1];
-    partyKing.sort(function(a, b){return b[1] - a[1]});
+    partyKing.sort(function (a, b) { return b[1] - a[1] });
     longestPartyKing[0] = partyKing[0];
     longestPartyKing[1] = partyKing[1];
 }
@@ -81,16 +82,18 @@ function party() {
 function mostTime() {
     var channels = [];
     for (var i = allBotMessages.length - 1; i >= 0; i--) {
-        var desc = allBotMessages[i].embeds[0].description;
-        var channId = desc.slice(desc.lastIndexOf("#") + 1, desc.length - 3);
-        var userId = desc.slice(desc.indexOf("!") + 1, desc.indexOf(">"));
-        var time = new Date(allBotMessages[i].embeds[0].timestamp);
-        if (desc.indexOf("joined voice channel") != -1) {
-            joinChannel(channels, channId, userId, time);
-        } else if (desc.indexOf("left voice channel") != -1) {
-            leaveChannel(channels, channId, userId, time);
-        } else if (desc.indexOf("switched voice channel") != -1) {
-            switchChannel(channels, channId, userId, desc);
+        if (allBotMessages[i].embeds[0] != undefined && allBotMessages[i].embeds[0].description != undefined) {
+            var desc = allBotMessages[i].embeds[0].description;
+            var channId = desc.slice(desc.lastIndexOf("#") + 1, desc.length - 3);
+            var userId = desc.slice(desc.indexOf("@") + 1, desc.indexOf(">"));
+            var time = new Date(allBotMessages[i].embeds[0].timestamp);
+            if (desc.indexOf("joined voice channel") != -1) {
+                joinChannel(channels, channId, userId, time);
+            } else if (desc.indexOf("left voice channel") != -1) {
+                leaveChannel(channels, channId, userId, time);
+            } else if (desc.indexOf("switched voice channel") != -1) {
+                switchChannel(channels, channId, userId, desc);
+            }
         }
     }
 }
@@ -127,6 +130,9 @@ function switchChannel(channels, channId, userId, desc) {
     var oldChann = getChannId(desc.slice(desc.indexOf("#") + 1, desc.indexOf("`", desc.indexOf("#"))));
     var chanIndex = getVoiceChannel(channels, channId);
     var oldChanIndex = getVoiceChannel(channels, oldChann);
+    if (oldChanIndex == -1) {
+        return;
+    }
     var j = getUserIndex(channels[oldChanIndex][1], userId);
     if (j == -1) {
         return;
@@ -142,16 +148,18 @@ function switchChannel(channels, channId, userId, desc) {
 function mostLonlyTime() {
     var channels = [];
     for (var i = allBotMessages.length - 1; i >= 0; i--) {
-        var desc = allBotMessages[i].embeds[0].description;
-        var channId = desc.slice(desc.lastIndexOf("#") + 1, desc.length - 3);
-        var userId = desc.slice(desc.indexOf("!") + 1, desc.indexOf(">"));
-        var time = new Date(allBotMessages[i].embeds[0].timestamp);
-        if (desc.indexOf("joined voice channel") != -1) {
-            joinLonlyChannel(channels, channId, userId, time);
-        } else if (desc.indexOf("left voice channel") != -1) {
-            leaveLonlyChannel(channels, channId, userId, time);
-        } else if (desc.indexOf("switched voice channel") != -1) {
-            switchLonlyChannel(channels, channId, userId, time, desc);
+        if (allBotMessages[i].embeds[0] != undefined && allBotMessages[i].embeds[0].description != undefined) {
+            var desc = allBotMessages[i].embeds[0].description;
+            var channId = desc.slice(desc.lastIndexOf("#") + 1, desc.length - 3);
+            var userId = desc.slice(desc.indexOf("!") + 1, desc.indexOf(">"));
+            var time = new Date(allBotMessages[i].embeds[0].timestamp);
+            if (desc.indexOf("joined voice channel") != -1) {
+                joinLonlyChannel(channels, channId, userId, time);
+            } else if (desc.indexOf("left voice channel") != -1) {
+                leaveLonlyChannel(channels, channId, userId, time);
+            } else if (desc.indexOf("switched voice channel") != -1) {
+                switchLonlyChannel(channels, channId, userId, time, desc);
+            }
         }
     }
 }
@@ -203,6 +211,9 @@ function switchLonlyChannel(channels, channId, userId, time, desc) {
     var oldChann = getChannId(desc.slice(desc.indexOf("#") + 1, desc.indexOf("`", desc.indexOf("#"))));
     var chanIndex = getVoiceChannel(channels, channId);
     var oldChanIndex = getVoiceChannel(channels, oldChann);
+    if(oldChanIndex == -1){
+        return;
+    }
     var j = getUserIndex(channels[oldChanIndex][1], userId);
     if (j == -1) {
         return;

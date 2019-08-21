@@ -74,6 +74,7 @@ function printGameData(msg) {
     sorted.sort(function (a,b) { return b[1] - a[1]});
     if(sorted.length == 0){
         msg.channel.send("No data yet.");
+        return;
     }
     var max = sorted[0][1];
 
