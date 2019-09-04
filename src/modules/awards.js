@@ -4,7 +4,7 @@ const vm = require('./srcAwards/voiceMessages.js');
 
 var botcmds;
 
-const ppl = [];
+const ppl = {};
 //name, msgs
 const promises = [];
 var num = 0;
@@ -53,14 +53,14 @@ exports.startup = () => {
 }
 
 function voiceUpdate(oldmember, newmember) {
-    if(oldmember.voiceChannel == newmember.voiceChannel){
+    if (oldmember.voiceChannel == newmember.voiceChannel) {
         return;
     }
     let embed = new Discord.RichEmbed();
     embed.setColor(13632027).setAuthor(oldmember.displayName, oldmember.user.displayAvatarURL).setTimestamp();
-    if(oldmember.voiceChannel == null && newmember.voiceChannel != null){
+    if (oldmember.voiceChannel == null && newmember.voiceChannel != null) {
         embed.setDescription("<@" + oldmember.id + "> joined voice channel `#" + newmember.voiceChannel.name + "`");
-    } else if(newmember.voiceChannel == null && oldmember.voiceChannel != null) {
+    } else if (newmember.voiceChannel == null && oldmember.voiceChannel != null) {
         embed.setDescription("<@" + oldmember.id + "> left voice channel `#" + oldmember.voiceChannel.name + "`");
     } else {
         embed.setDescription("<@" + oldmember.id + "> switched voice channel `#" + oldmember.voiceChannel.name + "` -> `#" + newmember.voiceChannel.name + "`");
@@ -146,18 +146,12 @@ function getReactionCount(reactions) {
 }
 
 function nums(message) {
-    found = false;
-    for (var i = 0; i < ppl.length; i++) {
-        if (ppl[i][0] == message.author.id) {
-            ppl[i][1]++;
-            ppl[i][2] += getReactionCount(message.reactions.array());
-            found = true;
-            break;
-        }
+    if (ppl[message.author.id] != null) {
+        ppl[message.author.id]["messages"]++;
+        ppl[message.author.id]["reactions"] += getReactionCount(message.reactions.array());
+        return;
     }
-    if (!found) {
-        ppl.push([message.author.id, 1, getReactionCount(message.reactions.array())]);
-    }
+    ppl[message.author.id] = { "messages": 1, "reactions": getReactionCount(message.reactions.array()) };
 }
 
 function getUserName(userId) {
@@ -197,18 +191,11 @@ function giveMsgAwards() {
     for (var j = 0; j < allMessages.length; j++) {
         nums(allMessages[j]);
     }
-    ppl.sort(function (a, b) { return b[1] - a[1] });
-    loudMouth[0] = ppl[0];
-    loudMouth[1] = ppl[1];
-    ppl.sort(function (a, b) { return b[2] - a[2] });
-    mrpopular[0] = ppl[0];
-    mrpopular[1] = ppl[1];
-    allMessages.sort(function (a, b) { return getReactionCount(b.reactions.array()) - getReactionCount(a.reactions.array()) });
-    mostpopularmsg[0] = allMessages[0];
-    mostpopularmsg[1] = allMessages[1];
-    allMessages.sort(function (a, b) { return b.content.length - a.content.length });
-    longwind[0] = allMessages[0];
-    longwind[1] = allMessages[1];
+
+    loudMouth = Object.entries(ppl).sort(function (a, b) { return b.messages - a.messages });
+    mrpopular = Object.entries(ppl).sort(function (a, b) { return b.reactions - a.reactions });
+    mostpopularmsg = allMessages.sort(function (a, b) { return getReactionCount(b.reactions.array()) - getReactionCount(a.reactions.array()) });
+    longwind = allMessages.sort(function (a, b) { return b.content.length - a.content.length });
     vm.makeVoiceCalcs(allBotMessages, bot);
     longestTime = vm.getLongestTime();
     longestLonlyTime = vm.getLongestLonlyTime();
@@ -233,7 +220,7 @@ function printAwards() {
 function printLoudMouth(loud) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
-        .setDescription("Loudmouth: " + getUserName(loud[0]) + " with " + loud[1] + " messages.")
+        .setDescription("Loudmouth: " + getUserName(loud[0]) + " with " + loud.messages + " messages.")
         .setAuthor(getUserName(loud[0]), getUser(loud[0]).avatarURL);
     msgRef.channel.send(embed);
 }
@@ -250,7 +237,7 @@ function printPopMsg(msg) {
 function printMrPop(pop) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
-        .setDescription("Mr Popular: " + getUserName(pop[0]) + " with " + pop[2] + " reactions total.")
+        .setDescription("Mr Popular: " + getUserName(pop[0]) + " with " + getReactionCount(pop.reactions.array()) + " reactions total.")
         .setAuthor(getUserName(pop[0]), getUser(pop[0]).avatarURL);
     msgRef.channel.send(embed);
 }

@@ -5,7 +5,7 @@ const token = settings["token"];
 var prefix = settings["prefix"];
 //admin command setings
 const adminCommands = settings["admincommands"];
-const settingCommands = ["addadmincommand", "removeadmincommand", "setprefix"];
+const settingCommands = ["addadmincommand", "removeadmincommand", "setprefix", "enablemodule", "disablemodule"];
 
 exports.token = token;
 exports.prefix = () => {
@@ -25,6 +25,15 @@ exports.commands = {
 	"setprefix": (msg) => {
 		setPrefix(msg);
 	},
+	"modules": (msg) => {
+		printModules(msg);
+	},
+	"enablemodule": (msg) => {
+		enableModule(msg);
+	},
+	"disablemodule": (msg) => {
+		disableModule(msg);
+	},
 	"settingshelp": (msg) => {
 		getSettingsHelp(msg);
 	}
@@ -42,11 +51,15 @@ function getSettingsHelp(msg) {
 			fields: []
 		}
 	};
-	tosend.embed.fields = [{ name: prefix + "admincommands", value: "Displays the commands with admin privileges." }]
-		.concat(getSettingsPermissions().concat(
-			[{ name: prefix + "addadmincommand [command] [role]", value: "Add a role requirement to a command." },
-			{ name: prefix + "removeadmincommand [command] [role]", value: "remove a role requirement from a command." },
-			{ name: prefix + "setprefix [new prefix]", value: "change the pefix." }]));
+	tosend.embed.fields = [{ name: prefix + "admincommands", value: "Displays the commands with admin privileges." },
+	{ name: prefix + "modules", value: "Shows modules." }];
+	tosend.embed.fields = tosend.embed.fields.concat(getSettingsPermissions());
+	tosend.embed.fields = tosend.embed.fields.concat(
+		[{ name: prefix + "addadmincommand [command] [role]", value: "Add a role requirement to a command." },
+		{ name: prefix + "removeadmincommand [command] [role]", value: "remove a role requirement from a command." },
+		{ name: prefix + "setprefix [new prefix]", value: "change the pefix." },
+		{ name: prefix + "enablemodule [module name]", value: "Enable a module." },
+		{ name: prefix + "disablemodule [module name]", value: "Disable a module." }]);
 	msg.channel.send(tosend);
 }
 
@@ -72,6 +85,10 @@ exports.isSetting = (command) => {
 	return settingCommands.find(x => x === command) != -1;
 }
 
+exports.isDisabled = (moduleName) => {
+	return settings.disabledmodules.includes(moduleName);
+}
+
 function getSettingsPermissions() {
 	let s = "";
 	if (adminCommands.hasOwnProperty("settings")) {
@@ -88,7 +105,8 @@ function getSettingsPermissions() {
 			}
 		}
 	}
-	return [{ name: '\u200b', value: '--------------------' }, { name: s, value: "\u200b" }];
+	return [{ name: "\u200b", value: "--------------------" },
+	{ name: "Roles: " + s, value: "\u200b" }];
 }
 
 //save current settings
@@ -109,8 +127,8 @@ function printAdminCommands(msg) {
 		}
 	};
 	for (var cmd in adminCommands) {
-		if(cmd == "settings"){
-			for(var cmdset in settingCommands) {
+		if (cmd == "settings") {
+			for (var cmdset in settingCommands) {
 				tosend.embed.fields.push({ name: "" + prefix + cmdset, value: addAdminCommand[cmd].sort().toString() });
 			}
 		} else {
@@ -185,4 +203,56 @@ function setPrefix(msg) {
 	prefix = msg.content.toLowerCase().slice(prefix.length).split(" ")[1];
 	msg.channel.send("The prefix has been changed.");
 	saveSettings();
+}
+
+function moduleExists(moduleName) {
+	try {
+		if (fs.existsSync("./src/modules/" + moduleName)) {
+			return true;
+		}
+	} catch (err) {
+	}
+	return false;
+}
+
+function printModules(msg) {
+	let tosend = {
+		embed: {
+			color: 3447003,
+			title: "List of modules",
+			description: ""
+		}
+	};
+	let modules = "";
+	fs.readdir("./src/modules/", function (err, files) {
+		files.forEach(function (mod) {
+			if (mod.endsWith(".js")) {
+				modules += mod.slice(0, -3) + "\n";
+			}
+		});
+		tosend.embed.description = modules;
+		msg.channel.send(tosend);
+	});
+}
+
+function enableModule(msg) {
+	let moduleName = msg.split(" ")[1];
+	if (moduleExists(moduleName)) {
+		settings.disabledmodules.push(moduleName);
+		msg.channel.send("Module enabled.");
+		saveSettings();
+		return;
+	}
+	msg.channel.send("Could not find module.");
+}
+
+function disableModule(msg) {
+	let moduleName = msg.split(" ")[1];
+	if (moduleExists(moduleName)) {
+		settings.disabledmodules.filter(x => x != moduleName);
+		msg.channel.send("Module disabled.");
+		saveSettings();
+		return;
+	}
+	msg.channel.send("Could not find module.");
 }

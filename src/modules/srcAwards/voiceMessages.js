@@ -30,7 +30,6 @@ exports.getLongestPartyKing = () => {
 
 function getMostTime() {
     pplTime.sort(function (a, b) { return b[1] - a[1] });
-    console.log(pplTime);
     longestTime[0] = pplTime[0];
     longestTime[1] = pplTime[1];
     pplLonlyTime.sort(function (a, b) { return b[1] - a[1] });

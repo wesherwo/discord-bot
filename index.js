@@ -5,42 +5,51 @@ const bot = new Discord.Client();
 //user settings
 const settings = require("./src/settings.js");
 
-const modules = [];
+var modules = [];
 //path to modules
 const modulePath = "./src/modules/";
 
+//avalible commands
+var commands;
+
 bot.on("ready", () => {
-	setUp();
+	updateModules();
 	console.log("Bot Running");
 });
 
-function setUp() {
-	//configure modules
+function updateModules() {
+	modules.forEach(function (mod) {
+		if (typeof mod.stop !== "undefined") {
+			mod.stop();
+		}
+	});
+	modules = [];
+	commands = {
+		"help": (msg) => {
+			getHelp(msg);
+		}
+	};
 	fs.readdir(modulePath, function (err, files) {
 		files.forEach(function (mod) {
-			if (mod.endsWith(".js"))
+			if (mod.endsWith(".js") && !settings.isDisabled(mod.slice(0, -3)))
 				modules.push(require(modulePath + mod));
 		});
-		updateModules();
-		startModules();
-		for (var cmd in settings.commands) {
-			commands[cmd] = settings.commands[cmd];
-		}
 		modules.forEach(function (mod) {
-			for (var cmd in mod.commands) {
-				commands[cmd] = mod.commands[cmd];
+			if (typeof mod.setRefs !== "undefined") {
+				mod.setRefs({
+					"bot": bot,
+					"prefix": settings.prefix()
+				});
 			}
 		});
 	});
-}
-
-function updateModules() {
+	startModules();
+	for (var cmd in settings.commands) {
+		commands[cmd] = settings.commands[cmd];
+	}
 	modules.forEach(function (mod) {
-		if (typeof mod.setRefs !== "undefined") {
-			mod.setRefs({
-				"bot": bot,
-				"prefix": settings.prefix()
-			});
+		for (var cmd in mod.commands) {
+			commands[cmd] = mod.commands[cmd];
 		}
 	});
 }
@@ -52,13 +61,6 @@ function startModules() {
 		}
 	});
 }
-
-//avalible commands
-const commands = {
-	"help": (msg) => {
-		getHelp(msg);
-	}
-};
 
 bot.on("message", msg => {
 	if (!msg.content.startsWith(settings.prefix())) return;

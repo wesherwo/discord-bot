@@ -6,6 +6,7 @@ var gameData = {};
 const path = "SaveData/savedata.json";
 const settings = JSON.parse(fs.readFileSync("Resources/ModuleResources/gameData.json"));
 const ignoreGames = settings["ignoreGames"];
+var stopped = false;
 setTimeout(runEachMin, 60000);
 
 exports.commands = {
@@ -27,9 +28,15 @@ exports.getHelp = () => {
     {name:prefix + "resetgames",value:"Reset the game stats for the server."}];
 }
 
+exports.stop = () => {
+    stopped = true;
+}
+
 function runEachMin() {
-	calcGameData(bot.channels.array()[0].guild.members.array());
-	setTimeout(runEachMin, 60000);
+    calcGameData(bot.channels.array()[0].guild.members.array());
+    if(!stopped){
+        setTimeout(runEachMin, 60000);
+    }
 }
 
 function calcGameData(ppl) {
