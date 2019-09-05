@@ -82,11 +82,11 @@ exports.hasRole = (msg, command) => {
 }
 
 exports.isSetting = (command) => {
-	return settingCommands.find(x => x === command) != -1;
+	return settingCommands.indexOf(command) != -1;
 }
 
 exports.isDisabled = (moduleName) => {
-	return settings.disabledmodules.includes(moduleName);
+	return settings.disabledmodules.indexOf(moduleName) != -1;
 }
 
 function getSettingsPermissions() {
@@ -114,6 +114,7 @@ function saveSettings() {
 	var jsonSettings = JSON.parse(fs.readFileSync("settings.json"));
 	jsonSettings.prefix = prefix;
 	jsonSettings.admincommands = adminCommands;
+	jsonSettings.disabledmodules = settings.disabledmodules;
 	jsonSettings = JSON.stringify(jsonSettings);
 	fs.writeFileSync("settings.json", jsonSettings, function (err) { if (err) { console.log(err); } });
 }
@@ -207,7 +208,7 @@ function setPrefix(msg) {
 
 function moduleExists(moduleName) {
 	try {
-		if (fs.existsSync("./src/modules/" + moduleName)) {
+		if (fs.existsSync("./src/modules/" + moduleName + ".js")) {
 			return true;
 		}
 	} catch (err) {
@@ -227,7 +228,13 @@ function printModules(msg) {
 	fs.readdir("./src/modules/", function (err, files) {
 		files.forEach(function (mod) {
 			if (mod.endsWith(".js")) {
-				modules += mod.slice(0, -3) + "\n";
+				modules += mod.slice(0, -3);
+				if(settings.disabledmodules.includes(mod.slice(0, -3))) {
+					modules += " disabled";
+				} else {
+					modules += " enabled";
+				}
+				modules += "\n";
 			}
 		});
 		tosend.embed.description = modules;
@@ -236,9 +243,9 @@ function printModules(msg) {
 }
 
 function enableModule(msg) {
-	let moduleName = msg.split(" ")[1];
+	let moduleName = msg.content.split(" ")[1];
 	if (moduleExists(moduleName)) {
-		settings.disabledmodules.push(moduleName);
+		settings.disabledmodules = settings.disabledmodules.filter(x => x != moduleName);
 		msg.channel.send("Module enabled.");
 		saveSettings();
 		return;
@@ -247,9 +254,9 @@ function enableModule(msg) {
 }
 
 function disableModule(msg) {
-	let moduleName = msg.split(" ")[1];
+	let moduleName = msg.content.split(" ")[1];
 	if (moduleExists(moduleName)) {
-		settings.disabledmodules.filter(x => x != moduleName);
+		settings.disabledmodules.push(moduleName);
 		msg.channel.send("Module disabled.");
 		saveSettings();
 		return;

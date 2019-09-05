@@ -31,8 +31,9 @@ function updateModules() {
 	};
 	fs.readdir(modulePath, function (err, files) {
 		files.forEach(function (mod) {
-			if (mod.endsWith(".js") && !settings.isDisabled(mod.slice(0, -3)))
+			if (mod.endsWith(".js") && !settings.isDisabled(mod.slice(0, -3))) {
 				modules.push(require(modulePath + mod));
+			}
 		});
 		modules.forEach(function (mod) {
 			if (typeof mod.setRefs !== "undefined") {
