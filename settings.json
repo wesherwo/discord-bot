@@ -1,5 +1,6 @@
 {
     "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "prefix": "!",
-    "admincommands": {}
+    "admincommands": {},
+    "disabledmodules":[]
 }
