@@ -43,15 +43,15 @@ function updateModules() {
 				});
 			}
 		});
-	});
-	startModules();
-	for (var cmd in settings.commands) {
-		commands[cmd] = settings.commands[cmd];
-	}
-	modules.forEach(function (mod) {
-		for (var cmd in mod.commands) {
-			commands[cmd] = mod.commands[cmd];
+		startModules();
+		for (var cmd in settings.commands) {
+			commands[cmd] = settings.commands[cmd];
 		}
+		modules.forEach(function (mod) {
+			for (var cmd in mod.commands) {
+				commands[cmd] = mod.commands[cmd];
+			}
+		});
 	});
 }
 
