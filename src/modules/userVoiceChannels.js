@@ -3,6 +3,7 @@ const Discord = require('discord.js');
 var bot;
 var prefix;
 var userChannelCategory;
+var stopped = false;
 
 var channels = {};
 
@@ -54,10 +55,17 @@ exports.startup = () => {
         userChannelCategory = bot.channels.find(val => val.name === "Join to create channel");
     }
     bot.on("voiceStateUpdate", (oldMember, newMember) => {
+        if(stopped){
+            return;
+        }
         if (newMember.voiceChannel != null && newMember.voiceChannel.id == userChannelCategory.id) {
             makeChannelByJoin(newMember);
         }
     });
+}
+
+exports.stop = () => {
+    stopped = true;
 }
 
 function makeChannelByJoin(member) {
