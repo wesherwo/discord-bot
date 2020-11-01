@@ -8,7 +8,7 @@ exports.commands = {
 	'play': (msg) => {
 		playSong(msg);
 	},
-	'join': (msg) => {
+	'musicjoin': (msg) => {
 		joinChan(msg);
 	},
 	'add': (msg) => {
@@ -46,7 +46,7 @@ function getSongHelp(msg) {
 		}
 	};
 	tosend.embed.fields =
-		[{ name: prefix + "join", value: "Join Voice channel of msg sender" },
+		[{ name: prefix + "musicjoin", value: "Join Voice channel of msg sender" },
 		{ name: prefix + "add [song]", value: "Add a valid youtube link to the queue" },
 		{ name: prefix + "addNext [song]", value: "Add a valid youtube link to the front of the queue" },
 		{ name: prefix + "playNext", value: "Move a song in the queue to the front" },
