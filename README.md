@@ -12,6 +12,11 @@ Next go to OAuth2 and under scopes select bot.
 Go to the link under scopes and add the bot to your server.
 Navigate to the Bot tab under settings.
 Click to reveal your token and copy it.
+Replace the X's with your token in the settings.json after token
+
+## Youtube API key
+Go to https://developers.google.com/youtube/v3/getting-started and follow the instructions to get your API key
+Replace the X's with your key in the settings.json after YTtoken
 
 ## Set personal settings
 Open the `settings.json` file and replace the X's with your token.
