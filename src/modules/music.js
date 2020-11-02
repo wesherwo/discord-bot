@@ -1,27 +1,31 @@
-const Discord = require('discord.js');
-const yt = require('ytdl-core');
+const ytdl = require('ytdl-core');
+const fs = require("fs");
+const fetch = require("node-fetch");
 var bot;
 var prefix;
-let queue = {};
+
+const settings = JSON.parse(fs.readFileSync("settings.json"));
+const YOUTUBE_API_KEY = settings["YTtoken"];
+const YOUTUBE_API_URL = 'https://www.googleapis.com/youtube/v3/search';
+var player = {
+	playlist: [],
+	voiceChannel: null,
+	textChannel: null,
+	connection: null,
+	dispatcher: null,
+	volume: 5,
+	playing: false
+};
 
 exports.commands = {
 	'play': (msg) => {
-		playSong(msg);
+		execute(msg);
 	},
-	'musicjoin': (msg) => {
-		joinChan(msg);
+	'skip': (msg) => {
+		skip(msg);
 	},
-	'add': (msg) => {
-		addSong(msg);
-	},
-	'queue': (msg) => {
-		showQueue(msg);
-	},
-	'playnext': (msg) => {
-		playNext(msg);
-	},
-	'addnext': (msg) => {
-		addNext(msg);
+	'stop': (msg) => {
+		stop(msg);
 	},
 	'songhelp': (msg) => {
 		getSongHelp(msg);
@@ -46,119 +50,118 @@ function getSongHelp(msg) {
 		}
 	};
 	tosend.embed.fields =
-		[{ name: prefix + "musicjoin", value: "Join Voice channel of msg sender" },
-		{ name: prefix + "add [song]", value: "Add a valid youtube link to the queue" },
-		{ name: prefix + "addNext [song]", value: "Add a valid youtube link to the front of the queue" },
-		{ name: prefix + "playNext", value: "Move a song in the queue to the front" },
-		{ name: prefix + "queue", value: "Shows the current queue, up to 15 songs shown." },
-		{ name: prefix + "play", value: "Play the music queue if already joined to a voice channel" },
-		{ name: prefix + "pause", value: "pauses the music" },
-		{ name: prefix + "resume", value: "resumes the music" },
-		{ name: prefix + "skip", value: "skips the playing song" },
-		{ name: prefix + "time", value: "Shows the playtime of the song." },
-		{ name: prefix + "stop", value: "stops the bot." },
-		{ name: prefix + "volume+(+++)", value: "increases volume by 2%/+" },
-		{ name: prefix + "volume-(---)", value: "decreases volume by 2%/-" }];
+		[{ name: prefix + "play [song]", value: "Add a song to the queue" },
+		{ name: prefix + "skip", value: "Skip the current song" },
+		{ name: prefix + "stop", value: "Stop playing music" }];
 	msg.channel.send(tosend);
 }
 
-function playSong(msg) {
-	if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`Add some songs to the queue first with ${prefix}add`);
-	if (!msg.guild.voiceConnection) return commands.join(msg).then(() => commands.play(msg));
-	if (queue[msg.guild.id].playing) return msg.channel.sendMessage('Already Playing');
-	let dispatcher;
-	queue[msg.guild.id].playing = true;
+async function execute(message) {
+	var query = message.content.substring(message.content.indexOf(" "));
+  
+	const voiceChannel = message.member.voiceChannel;
+	if (!voiceChannel)
+	  return message.channel.send(
+		"You need to be in a voice channel to play music!"
+	  );
+	const permissions = voiceChannel.permissionsFor(message.client.user);
+	if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
+	  return message.channel.send(
+		"I need the permissions to join and speak in your voice channel!"
+	  );
+	}
 
-	console.log(queue);
-	(function play(song) {
-		console.log(song);
-		if (song === undefined) return msg.channel.sendMessage('Queue is empty').then(() => {
-			queue[msg.guild.id].playing = false;
-			msg.member.voiceChannel.leave();
+	if(!query.includes('https://www.youtube.com')){
+		url = YOUTUBE_API_URL + '?part=snippet&maxResults=1&q=' + query + '&key=' + YOUTUBE_API_KEY
+		await fetch(url)
+		.then(response => response.json())
+		.then(data => {
+			query = 'https://www.youtube.com/watch?v=' + data.items[0].id.videoId;
 		});
-		msg.channel.sendMessage(`Playing: **${song.title}** as requested by: **${song.requester}**`);
-		dispatcher = msg.guild.voiceConnection.playStream(yt(song.url, { audioonly: true }), { passes: 5 });
-		let collector = msg.channel.createCollector(m => m);
-		collector.on('message', m => {
-			if (m.content.startsWith(prefix + 'pause')) {
-				msg.channel.sendMessage('paused').then(() => { dispatcher.pause(); });
-			} else if (m.content.startsWith(prefix + 'resume')) {
-				msg.channel.sendMessage('resumed').then(() => { dispatcher.resume(); });
-			} else if (m.content.startsWith(prefix + 'skip')) {
-				msg.channel.sendMessage('skipped').then(() => { dispatcher.end(); });
-			} else if (m.content.startsWith(prefix + 'stop')) {
-				msg.channel.sendMessage('stopped')
-				queue[msg.guild.id].songs.forEach(() => { queue[msg.guild.id].songs.shift(); });
-				dispatcher.end();
-			} else if (m.content.startsWith('volume+')) {
-				if (Math.round(dispatcher.volume * 50) >= 100) return msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume * 50)}%`);
-				dispatcher.setVolume(Math.min((dispatcher.volume * 50 + (2 * (m.content.split('+').length - 1))) / 50, 2));
-				msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume * 50)}%`);
-			} else if (m.content.startsWith('volume-')) {
-				if (Math.round(dispatcher.volume * 50) <= 0) return msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume * 50)}%`);
-				dispatcher.setVolume(Math.max((dispatcher.volume * 50 - (2 * (m.content.split('-').length - 1))) / 50, 0));
-				msg.channel.sendMessage(`Volume: ${Math.round(dispatcher.volume * 50)}%`);
-			} else if (m.content.startsWith(prefix + 'time')) {
-				msg.channel.sendMessage(`time: ${Math.floor(dispatcher.time / 60000)}:${Math.floor((dispatcher.time % 60000) / 1000) < 10 ? '0' + Math.floor((dispatcher.time % 60000) / 1000) : Math.floor((dispatcher.time % 60000) / 1000)}`);
-			}
-		});
-		dispatcher.on('end', () => {
-			collector.stop();
-			console.log("end");
-			play(queue[msg.guild.id].songs.shift());
-		});
-		dispatcher.on('error', (err) => {
-			return msg.channel.sendMessage('error: ' + err).then(() => {
-				collector.stop();
-				console.log("error");
-				play(queue[msg.guild.id].songs.shift());
-			});
-		});
-	})(queue[msg.guild.id].songs.shift());
-}
+	}
+	const songInfo = await ytdl.getInfo(query);
+	const song = {
+	  title: songInfo.videoDetails.title,
+	  url: songInfo.url
+	};
 
-function joinChan(msg) {
-	return new Promise((resolve, reject) => {
-		const voiceChannel = msg.member.voiceChannel;
-		if (!voiceChannel || voiceChannel.type !== 'voice') return msg.reply('I couldn\'t connect to your voice channel...');
-		voiceChannel.join().then(connection => resolve(connection)).catch(err => reject(err));
-	});
-}
+	if(!player.playing) {
+		player.textChannel = message.channel
+		player.voiceChannel = voiceChannel;
+		player.playlist = [song];
+		try {
+			var connection = await voiceChannel.join();
+			player.connection = connection;
+			play(player.voiceChannel, player.playlist[0]);
+		  } catch (err) {
+			console.log(err);
+			clearPlayer();
+			return message.channel.send(err);
+		  }
+	}
+	else {
+		if(voiceChannel != player.voiceChannel){
+			return message.channel.send(`I am already playing in another channel.`);
+		}
+		player.playlist.push(song);
+		return message.channel.send(`${song.title} has been added to the queue!`);
+	}
+  }
+  
+  function skip(message) {
+	if (!message.member.voiceChannel)
+	  return message.channel.send(
+		"You have to be in a voice channel to stop the music!"
+	  );
+	if (!player.playing)
+	  return message.channel.send("There is no song that I could skip!");
 
-function addSong(msg) {
-	let url = msg.content.split(' ')[1];
-	if (url == '' || url === undefined) return msg.channel.sendMessage(`You must add a YouTube video url, or id after ${prefix}add`);
-	yt.getInfo(url, (err, info) => {
-		if (err) return msg.channel.sendMessage('Invalid YouTube Link: ' + err);
-		if (!queue.hasOwnProperty(msg.guild.id)) queue[msg.guild.id] = {}, queue[msg.guild.id].playing = false, queue[msg.guild.id].songs = [];
-		queue[msg.guild.id].songs.push({ url: url, title: info.title, requester: msg.author.username });
-		msg.channel.sendMessage(`added **${info.title}** to the queue`);
-	});
-}
+	if(message.member.voiceChannel != player.voiceChannel){
+		return message.channel.send(`You are not in the channel playing music.`);
+	}
+	player.dispatcher.end();
+  }
+  
+  function stop(message) {
+	if (!message.member.voiceChannel)
+	  return message.channel.send(
+		"You have to be in a voice channel to stop the music!"
+	  );
+	if(message.member.voiceChannel != player.voiceChannel){
+		return message.channel.send(`You are not in the channel playing music.`);
+	}
+	player.dispatcher.end();
+	clearPlayer();
+  }
+  
+  function play(chan, song) {
+	player.playing = true;
+	if (!song) {
+		player.voiceChannel.leave();
+		player.playing = false;
+		clearPlayer();
+	  return;
+	}
+  
+	player.dispatcher = player.connection
+	  .playStream(ytdl(song.url, {filter: "audioonly"}))
+	  .on("end", () => {
+		player.playlist.shift();
+		play(chan, player.playlist[0]);
+	  })
+	  .on("error", error => console.error(error));
+	player.dispatcher.setVolumeLogarithmic(player.volume / 5);
+	player.textChannel.send(`Start playing: **${song.title}**`);
+  }
 
-function showQueue(msg) {
-	if (queue[msg.guild.id] === undefined) return msg.channel.sendMessage(`Add some songs to the queue first with ${prefix}add`);
-	let tosend = [];
-	queue[msg.guild.id].songs.forEach((song, i) => { tosend.push(`${i + 1}. ${song.title} - Requested by: ${song.requester}`); });
-	msg.channel.sendMessage(`__**${msg.guild.name}'s Music Queue:**__ Currently **${tosend.length}** songs queued ${(tosend.length > 15 ? '*[Only next 15 shown]*' : '')}\n\`\`\`${tosend.slice(0, 15).join('\n')}\`\`\``);
-}
-
-function playNext(msg) {
-	let text = msg.content.split(' ')[1];
-	let pos = (parseInt(text)) - 1;
-	let elem = queue[msg.guild.id].songs[pos];
-	queue[msg.guild.id].songs.splice(pos, 1);
-	queue[msg.guild.id].songs.splice(0, 0, elem);
-	return msg.channel.sendMessage(`${elem.title} moved to the front of the queue`);
-}
-
-function addNext(msg) {
-	let url = msg.content.split(' ')[1];
-	if (url == '' || url === undefined) return msg.channel.sendMessage(`You must add a YouTube video url, or id after ${prefix}add`);
-	yt.getInfo(url, (err, info) => {
-		if (err) return msg.channel.sendMessage('Invalid YouTube Link: ' + err);
-		if (!queue.hasOwnProperty(msg.guild.id)) queue[msg.guild.id] = {}, queue[msg.guild.id].playing = false, queue[msg.guild.id].songs = [];
-		queue[msg.guild.id].songs.splice(0, 0, { url: url, title: info.title, requester: msg.author.username });
-		msg.channel.sendMessage(`added **${info.title}** to the front of the queue`);
-	});
-}
+  function clearPlayer() {
+	player = {
+		playlist: [],
+		voiceChannel: null,
+		textChannel: null,
+		connection: null,
+		dispatcher: null,
+		volume: 5,
+		playing: false
+	};
+  }

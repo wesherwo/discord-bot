@@ -121,7 +121,7 @@ function getOwnedChannel(member) {
 }
 
 function rename(msg) {
-    var newName = msg.content.split(" ")[1];
+    var newName = msg.content.substring(msg.content.indexOf(" "));
     if (newName == null) {
         msg.channel.send("Must give a name for the channel.");
         return;

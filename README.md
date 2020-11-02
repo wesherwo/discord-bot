@@ -27,3 +27,6 @@ Open the `settings.json` file and add `"settings": ["role1","role2",...]` inside
 
 ## Setting a default channel
 Open the `Resources/ModuleResources/tournyOW.json` and chnage the X's for defaultChannel with the name of the voice channel that you want to be the default.
+
+## FFMPEG is not installed on the machine running the bot
+The play command requires FFMPEG to be installed on the machine that is running the bot. You can download it on the official FFMPEG website. Note: This isn't relevant if you use the Dockerfile because it will install FFMPEG inside of the container.
