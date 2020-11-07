@@ -1,6 +1,7 @@
 {
-    "token": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "token": "XXXXXXXXXX",
     "prefix": "!",
     "admincommands": {},
-    "disabledmodules":[]
+    "disabledmodules":[],
+    "YTtoken":"XXXXXXXXXX"
 }
