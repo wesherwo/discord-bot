@@ -33,7 +33,7 @@ exports.stop = () => {
 }
 
 function runEachMin() {
-    calcGameData(bot.channels.array()[0].guild.members.array());
+    calcGameData(bot.channels.cache.array()[0].guild.members.cache.array());
     if(!stopped){
         setTimeout(runEachMin, 60000);
     }

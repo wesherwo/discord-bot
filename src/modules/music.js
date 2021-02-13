@@ -79,7 +79,7 @@ function getSongHelp(msg) {
 		[{ name: prefix + "play [song]", value: "Add a song to the queue" },
 		{ name: prefix + "skip", value: "Skip the current song" },
 		{ name: prefix + "stop", value: "Stop playing music" },
-		{ name: prefix + "shuffle", value: "Suffle the playlist" },
+		{ name: prefix + "shuffle", value: "Shuffle the playlist" },
 		{ name: prefix + "playplaylist [name]", value: "Adds a playlist to the queue" },
 		{ name: prefix + "playlists", value: "Shows playlist names and song count" },
 		{ name: prefix + "playlist [name]", value: "Shows songs on playlist" },
@@ -93,7 +93,7 @@ function getSongHelp(msg) {
 async function execute(message) {
 	var query = message.content.substring(message.content.indexOf(" "));
 
-	const voiceChannel = message.member.voiceChannel;
+	const voiceChannel = message.member.voice.channel;
 	if (!voiceChannel)
 		return message.channel.send(
 			"You need to be in a voice channel to play music!"
@@ -142,49 +142,49 @@ async function songSearch(query) {
 	const songInfo = await ytdl.getInfo(query);
 	const song = {
 		title: songInfo.videoDetails.title,
-		url: songInfo.url
+		url: query
 	};
 	return song;
 }
 
 function skip(message) {
-	if (!message.member.voiceChannel)
+	if (!message.member.voice.channel)
 		return message.channel.send(
 			"You have to be in a voice channel to stop the music!"
 		);
 	if (!player.playing)
 		return message.channel.send("There is no song that I could skip!");
 
-	if (message.member.voiceChannel != player.voiceChannel) {
+	if (message.member.voice.channel != player.voiceChannel) {
 		return message.channel.send(`You are not in the channel playing music.`);
 	}
 	player.dispatcher.end();
 }
 
 function stop(message) {
-	if (!message.member.voiceChannel)
+	if (!message.member.voice.channel)
 		return message.channel.send(
 			"You have to be in a voice channel to stop the music!"
 		);
-	if (message.member.voiceChannel != player.voiceChannel) {
+	if (message.member.voice.channel != player.voiceChannel) {
 		return message.channel.send(`You are not in the channel playing music.`);
 	}
-	player.dispatcher.end();
+	player.connection.disconnect();
 	clearPlayer();
 }
 
 function play(chan, song) {
 	player.playing = true;
 	if (!song) {
-		player.voiceChannel.leave();
+		player.connection.disconnect();
 		player.playing = false;
 		clearPlayer();
 		return;
 	}
 
 	player.dispatcher = player.connection
-		.playStream(ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { highWaterMark: 1 })
-		.on("end", () => {
+		.play(ytdl(song.url, { filter: 'audioonly', quality: 'highestaudio', highWaterMark: 1 << 25 }), { highWaterMark: 1 })
+		.on("finish", () => {
 			player.playlist.shift();
 			play(chan, player.playlist[0]);
 		})
@@ -209,7 +209,7 @@ function shufflePlaylist(msg) {
 	var currSong = player.playlist.shift();
 	player.playlist = shuffle(player.playlist);
 	player.playlist.unshift(currSong);
-	msg.channel.send("Current Playlist suffled.");
+	msg.channel.send("Current Playlist shuffled.");
 }
 
 function shuffle(array) {
@@ -227,7 +227,7 @@ function shuffle(array) {
 }
 
 async function playPlaylist(msg) {
-	const voiceChannel = msg.member.voiceChannel;
+	const voiceChannel = msg.member.voice.channel;
 	if (player.playing == true && voiceChannel != player.voiceChannel) {
 		return msg.channel.send(`I am already playing in another channel.`);
 	}
@@ -239,6 +239,7 @@ async function playPlaylist(msg) {
 	for (var song in playlists.playlists[toPlay]) {
 		player.playlist.push(playlists.playlists[toPlay][song]);
 	}
+	player.playlist = shuffle(player.playlist);
 	msg.channel.send(`${toPlay} songs have been added to the queue!`);
 	console.log(player.playlist);
 	if (!player.playing) {
@@ -330,7 +331,7 @@ async function removeSongFromPlaylist(msg) {
 		return msg.channel.send("Playlist does not exist.");
 	}
 	song = await songSearch(newSong);
-	playlists.playlists[playlist].splice(playlists.playlists[playlist].find(e => e == song),1);
+	playlists.playlists[playlist].splice(playlists.playlists[playlist].find(e => e.title.localeCompare(song.title) && e.url.localeCompare(song.url)),1);
 	var jsonData = JSON.stringify(playlists);
 	fs.writeFileSync(savedPlaylists, jsonData, function (err) { if (err) { console.log(err); } });
 	msg.channel.send(`${song.title} removed from ${playlist}.`);

@@ -44,22 +44,22 @@ exports.setRefs = (refs) => {
 }
 
 exports.startup = () => {
-    userChannelCategory = bot.channels.find(val => val.name === "Join to create channel");
+    userChannelCategory = bot.channels.cache.find(val => val.name === "Join to create channel");
     if (userChannelCategory == null) {
-        var guild = bot.guilds.array()[0];
-        guild.createChannel("USER CHANNELS", { type: "category" }).then(parent => {
-            guild.createChannel("Join to create channel", { type: "voice" }).then(chan => {
+        var guild = bot.guilds.cache.array()[0];
+        guild.channels.create("USER CHANNELS", { type: "category" }).then(parent => {
+            guild.channels.create("Join to create channel", { type: "voice" }).then(chan => {
                 chan.setParent(parent);
             });
         });
-        userChannelCategory = bot.channels.find(val => val.name === "Join to create channel");
+        userChannelCategory = bot.channels.cache.find(val => val.name === "Join to create channel");
     }
     bot.on("voiceStateUpdate", (oldMember, newMember) => {
         if(stopped){
             return;
         }
-        if (newMember.voiceChannel != null && newMember.voiceChannel.id == userChannelCategory.id) {
-            makeChannelByJoin(newMember);
+        if (newMember.member.voice.channel != null && newMember.member.voice.channel.id == userChannelCategory.id) {
+            makeChannelByJoin(newMember.member);
         }
     });
 }
@@ -84,14 +84,14 @@ function makeChannelByMsg(msg) {
 }
 
 function makeChannel(member, name) {
-    bot.guilds.array()[0].createChannel(name, { type: "voice" }).then(chan => { moveUser(member, chan); });
+    bot.guilds.cache.array()[0].channels.create(name, { type: "voice" }).then(chan => { moveUser(member, chan); });
 }
 
 function moveUser(member, chan) {
     channels[chan.id] = { "owner": member };
     chan.setParent(userChannelCategory.parent);
-    if (member.voiceChannel != null) {
-        member.setVoiceChannel(chan);
+    if (member.voice.channel != null) {
+        member.voice.setChannel(chan);
     }
     setTimeout(checkIfEmpty(chan), 2500);
     return;
@@ -146,7 +146,7 @@ function lock(msg) {
                     allow: ['CONNECT']
                 },
                 {
-                    id: bot.guilds.array()[0].defaultRole,
+                    id: bot.guilds.cache.array()[0].defaultRole,
                     deny: ['CONNECT']
                 }
             ],
@@ -161,7 +161,7 @@ function unlock(msg) {
         chan.replacePermissionOverwrites({
             overwrites: [
                 {
-                    id: bot.guilds.array()[0].defaultRole,
+                    id: bot.guilds.cache.array()[0].defaultRole,
                     allow: ['CONNECT']
                 }
             ],
@@ -181,7 +181,7 @@ function kick(msg) {
         var members = chan.members.array();
         members.forEach(member => {
             if (member.displayName == name) {
-                member.setVoiceChannel(null);
+                member.voice.setChannel(null);
                 return;
             }
         });
