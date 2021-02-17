@@ -241,7 +241,6 @@ async function playPlaylist(msg) {
 	}
 	player.playlist = shuffle(player.playlist);
 	msg.channel.send(`${toPlay} songs have been added to the queue!`);
-	console.log(player.playlist);
 	if (!player.playing) {
 		player.textChannel = msg.channel
 		player.voiceChannel = voiceChannel;
