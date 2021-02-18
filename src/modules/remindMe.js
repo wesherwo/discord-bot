@@ -26,7 +26,8 @@ exports.setRefs = (refs) => {
 }
 
 function ping (msg) {
-    var time = msg.content.split(" ")[1].trim();
+    var time = msg.content.split(" ")[1];
+    time = time.trim();
     if(time.length != 5 || parseInt(time.substring(0,2)) > 23 || time.charAt(2) != ':' || parseInt(time.substring(3,5)) > 59) {
         msg.send("Time format must be HH:MM and between 00:00 and 23:59");
     }
