@@ -31,7 +31,6 @@ function ping (msg) {
         msg.send("Time format must be HH:MM and between 00:00 and 23:59");
     }
     var pingTime = new Date();
-    console.log(currTime.getTime());
     pingTime.setHours(time.substring(0,2));
     pingTime.setMinutes(time.substring(3,5));
     pingTime.setSeconds(0);
