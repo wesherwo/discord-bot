@@ -4,8 +4,6 @@ var botcmds;
 var bot;
 var prefix;
 
-var currTime = new Date();
-
 exports.commands = {
     'ping': (msg) => {
         ping(msg);
@@ -32,10 +30,12 @@ function ping (msg) {
     if(time.length != 5 || parseInt(time.substring(0,2)) > 23 || time.charAt(2) != ':' || parseInt(time.substring(3,5)) > 59) {
         msg.send("Time format must be HH:MM and between 00:00 and 23:59");
     }
-    var pingTime = new Date(currTime.getTime());
+    var pingTime = new Date();
+    console.log(currTime.getTime());
     pingTime.setHours(time.substring(0,2));
     pingTime.setMinutes(time.substring(3,5));
     pingTime.setSeconds(0);
+    var currTime = new Date();
     var timer = pingTime.getTime() - currTime.getTime();
     if(timer < 0){
         timer += 86400000;
