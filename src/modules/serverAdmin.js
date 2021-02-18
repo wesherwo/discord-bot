@@ -39,12 +39,12 @@ function voiceUpdate(oldmember, newmember) {
     }
     let embed = new MessageEmbed();
     embed.setColor(13632027).setAuthor(oldmember.member.user.username, oldmember.member.user.displayAvatarURL()).setTimestamp();
-    if (oldmember.member.voice.channel == null && newmember.member.voice.channel != null) {
+    if (oldmember.channel == null && newmember.channel != null) {
         embed.setDescription("<@" + oldmember.member.id + "> joined voice channel `#" + newmember.member.voice.channel.name + "`");
-    } else if (newmember.member.voice.channel == null && oldmember.member.voice.channel != null) {
-        embed.setDescription("<@" + oldmember.member.id + "> left voice channel `#" + oldmember.member.voice.channel.name + "`");
+    } else if (newmember.channel == null && oldmember.channel != null) {
+        embed.setDescription("<@" + oldmember.member.id + "> left voice channel `#" + oldmember.channel.name + "`");
     } else {
-        embed.setDescription("<@" + oldmember.member.id + "> switched voice channel `#" + oldmember.member.voice.channel.name + "` -> `#" + newmember.member.voice.channel.name + "`");
+        embed.setDescription("<@" + oldmember.member.id + "> switched voice channel `#" + oldmember.channel.name + "` -> `#" + newmember.channel.name + "`");
     }
     botcmds.send(embed);
 }
