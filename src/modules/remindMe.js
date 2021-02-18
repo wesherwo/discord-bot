@@ -55,7 +55,7 @@ function pingNow(msg) {
         reaction.users.cache.forEach(user => {
             if(messaged[user.username] == undefined){
                 messaged[user.username] = true;
-                user.send(msg.content.substring(6));
+                user.send(msg.content.substring(12));
             }
         })
     });
