@@ -7,10 +7,6 @@ var prefix;
 exports.commands = {
 }
 
-exports.getHelp = () => {
-    return [{}];
-}
-
 exports.setRefs = (refs) => {
     bot = refs.bot;
     prefix = refs.prefix;
@@ -57,7 +53,7 @@ function messageDelete(message) {
 }
 
 function messageUpdate(oldMessage, newMessage) {
-    if (oldMessage.member.user == bot.user) {
+    if (oldMessage.member == null || oldMessage.member.user == bot.user) {
         return;
     }
     let embed = new MessageEmbed();

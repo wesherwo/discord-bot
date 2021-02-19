@@ -41,22 +41,16 @@ function runEachMin() {
 
 function calcGameData(ppl) {
     for (var i = 0; i < ppl.length; i++) {
-        game = ppl[i].user.presence.game;
-        if (game != null) {
-            var name = game.name;
-            if(name == "MapleStory2"){
-                name = "MapleStory 2";
+        games = ppl[i].user.presence.activities.forEach(game => {
+            if (game.type == "PLAYING") {
+                var name = game.name;
+                if (!gameData.hasOwnProperty(name)) {
+                    gameData[name] = 1;
+                } else {
+                    gameData[name]++;
+                }
             }
-            if(name == "Tom Clancy's Rainbow Six Siege"){
-                name = "Rainbow Six Siege";
-            }
-
-            if (!gameData.hasOwnProperty(name)) {
-                gameData[name] = 1;
-            } else {
-                gameData[name]++;
-            }
-        }
+        });
     }
     var data = JSON.parse(fs.readFileSync(path));
     for (var i in gameData) {
