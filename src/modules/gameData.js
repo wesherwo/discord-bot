@@ -33,7 +33,7 @@ exports.stop = () => {
 }
 
 function runEachMin() {
-    calcGameData(bot.channels.cache.array()[0].guild.members.cache.array());
+    calcGameData(bot.guilds.cache.array()[0].presences.cache.array());
     if(!stopped){
         setTimeout(runEachMin, 60000);
     }
@@ -41,7 +41,7 @@ function runEachMin() {
 
 function calcGameData(ppl) {
     for (var i = 0; i < ppl.length; i++) {
-        games = ppl[i].user.presence.activities.forEach(game => {
+        games = ppl[i].activities.forEach(game => {
             if (game.type == "PLAYING") {
                 var name = game.name;
                 if (!gameData.hasOwnProperty(name)) {
