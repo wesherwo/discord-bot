@@ -1,4 +1,5 @@
 const fs = require("fs");
+var bot;
 //user settings
 const settings = JSON.parse(fs.readFileSync("settings.json"));
 const token = settings["token"];
@@ -6,10 +7,19 @@ var prefix = settings["prefix"];
 //admin command setings
 const adminCommands = settings["admincommands"];
 const settingCommands = ["addadmincommand", "removeadmincommand", "setprefix", "enablemodule", "disablemodule"];
+var commands;
 
 exports.token = token;
 exports.prefix = () => {
 	return prefix;
+}
+
+exports.setSettingRefs = (refs) => {
+    bot = refs.bot;
+}
+
+exports.updateCommands = (newCommands) => {
+	commands = newCommands;
 }
 
 exports.commands = {
@@ -71,9 +81,9 @@ exports.hasRole = (msg, command) => {
 	if (!adminCommands.hasOwnProperty(command)) {
 		return true;
 	}
-	for (var i = 0; i < adminCommands[command].length; i++) {
-		var adminId = msg.guild.roles.find(x => x.name === adminCommands[command][i]).id;
-		if (msg.member.roles.has(adminId)) {
+	roles = Object.values(adminCommands[command])
+	for(var i = 0; i < roles.length; i++) {
+		if (msg.member.roles.cache.has(roles[i])) {
 			return true;
 		}
 	}
@@ -93,15 +103,15 @@ function getSettingsPermissions() {
 	let s = "";
 	if (adminCommands.hasOwnProperty("settings")) {
 		if (adminCommands["settings"].length > 0) {
-			s = "Must be a " + adminCommands["settings"][0]
+			s = "Must be a " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][0]).name;
 			for (var i = 1; i < adminCommands["settings"].length - 1; i++) {
-				s += ", " + adminCommands["settings"][i];
+				s += ", " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][i]).name;
 			}
 			if (adminCommands["settings"].length > 2) {
 				s += ",";
 			}
 			if (adminCommands["settings"].length > 1) {
-				s += " or " + adminCommands["settings"][adminCommands["settings"].length - 1];
+				s += " or " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][adminCommands["settings"].length - 1]).name;
 			}
 		}
 	}
@@ -120,23 +130,42 @@ function saveSettings() {
 }
 
 function printAdminCommands(msg) {
+	var page = 1;
 	let tosend = {
 		embed: {
 			color: 3447003,
-			title: "List of commands",
+			title: "List of commands.  Page " + page,
 			fields: []
 		}
 	};
 	for (var cmd in adminCommands) {
+		list = [];
+		adminCommands[cmd].forEach(element => {
+			list.push(bot.guilds.cache.array()[0].roles.cache.find(role => role.id === element).name);
+		});
 		if (cmd == "settings") {
+			
 			for (var cmdset in settingCommands) {
-				tosend.embed.fields.push({ name: "" + prefix + cmdset, value: addAdminCommand[cmd].sort().toString() });
+				tosend.embed.fields.push({ name: "" + prefix + settingCommands[cmdset], value:  list.sort().join(", ")});
 			}
 		} else {
-			tosend.embed.fields.push({ name: "" + prefix + cmd, value: adminCommands[cmd].sort().toString() });
+			tosend.embed.fields.push({ name: "" + prefix + cmd, value: list.sort().join(", ")});
 		}
+		if(tosend.embed.fields.length % 20 == 0){
+            msg.channel.send(tosend);
+            page++;
+            tosend = {
+                embed: {
+					color: 3447003,
+					title: "List of commands.  Page " + page,
+					fields: []
+				}
+            };
+        }
 	}
-	msg.channel.send(tosend);
+	if(tosend.embed.fields.length > 0){
+		msg.channel.send(tosend);
+	}
 }
 
 //adds roles or makes commands admin commands
@@ -147,23 +176,30 @@ function addAdminCommand(msg) {
 		msg.channel.send("Command not found.");
 		return;
 	}
-	if (msg.guild.roles.find(x => x.name === role) == undefined) {
+	var id;
+	for(let [key, value] of msg.guild.roles.cache){
+		if(value.name.toLowerCase() == role.toLowerCase()){
+			id = key;
+		}
+	}
+	if (id == undefined) {
 		msg.channel.send("Role not found.");
 		return;
 	}
-	if (settingCommands.find(command) != -1) {
+	if (settingCommands.includes(command)) {
 		command = "settings";
 		msg.channel.send("WARNING!  Careful with permissions for this setting!  Changing this changes other permissions as well.");
 	}
 	if (adminCommands.hasOwnProperty(command)) {
-		if (adminCommands[command].indexOf(role) == -1) {
-			adminCommands[command].push(role);
+		if (adminCommands[command].indexOf(id) == -1) {
+			adminCommands[command].push(id);
 		} else {
 			msg.channel.send("Role already has this permission.");
 			return;
 		}
 	} else {
-		adminCommands[command] = [role];
+		adminCommands[command] = [id];
+		msg.channel.send("Permissions updated.");
 	}
 	saveSettings();
 }
@@ -176,21 +212,28 @@ function removeAdminCommand(msg) {
 		msg.channel.send("Command not found.");
 		return;
 	}
-	if (msg.guild.roles.find(x => x.name === role) == undefined) {
+	var id;
+	for(let [key, value] of msg.guild.roles.cache){
+		if(value.name.toLowerCase() == role.toLowerCase()){
+			id = key;
+		}
+	}
+	if (id == undefined) {
 		msg.channel.send("Role not found.");
 		return;
 	}
-	if (settingCommands.find(command) != -1) {
+	if (settingCommands.includes(command)) {
 		command = "settings";
 		msg.channel.send("WARNING!  Careful with permissions for this setting!  Changing this changes other permissions as well.");
 	}
 	if (adminCommands.hasOwnProperty(command)) {
-		var i = adminCommands[command].indexOf(role);
+		var i = adminCommands[command].indexOf(id);
 		if (i != -1) {
 			adminCommands[command].splice(i, 1);
 			if (adminCommands[command].length == 0) {
 				delete adminCommands[command];
 			}
+			msg.channel.send("Permissions updated.");
 		} else {
 			msg.channel.send("Role did not have permission.");
 		}

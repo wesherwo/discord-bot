@@ -52,6 +52,7 @@ function updateModules() {
 				commands[cmd] = mod.commands[cmd];
 			}
 		});
+		settings.updateCommands(commands);
 	});
 }
 
@@ -77,6 +78,9 @@ bot.on("message", msg => {
 });
 
 bot.login(settings.token);
+settings.setSettingRefs({
+	"bot": bot
+});
 
 function getHelp(msg) {
 	let tosend = {

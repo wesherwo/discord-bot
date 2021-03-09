@@ -14,6 +14,8 @@ Navigate to the Bot tab under settings.
 Click to reveal your token and copy it.
 Replace the X's with your token in the settings.json after token
 
+For the gameData.js to work you will also need to enable the Privileged Gateway Intents under the Bot section. (Presence Intent and Server Members Intent)
+
 ## Youtube API key
 Go to https://developers.google.com/youtube/v3/getting-started and follow the instructions to get your API key
 Replace the X's with your key in the settings.json after YTtoken
@@ -28,7 +30,7 @@ Run `node index` to start the bot.
 ## Setting admin commands
 In discord type in your prefix followed by `addadmincommand addadmincommand` followed by a space and then type in what role you want to be able to use settings commands.
 #### OR
-Open the `settings.json` file and add `"settings": ["role1","role2",...]` inside the {} for admincommands.
+Open the `settings.json` file and add `"settings": ["role1","role2",...]` inside the {} for admincommands.  You need to get the role id from server settings in Discord and replace the `["role1","role2",...]` with `["id", "id",...]`.
 
 ## Setting a default channel
 Open the `Resources/ModuleResources/tournyOW.json` and chnage the X's for defaultChannel with the name of the voice channel that you want to be the default.

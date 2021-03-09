@@ -41,33 +41,6 @@ exports.setRefs = (refs) => {
     prefix = refs.prefix;
 }
 
-exports.startup = () => {
-    botcmds = bot.channels.find(val => val.name === "bot-cmds");
-    if (botcmds == null) {
-        var guild = bot.guilds.array()[0];
-        guild.createChannel("bot-cmds", { type: "text" });
-    }
-    bot.on("voiceStateUpdate", (oldMember, newMember) => {
-        voiceUpdate(oldMember, newMember);
-    });
-}
-
-function voiceUpdate(oldmember, newmember) {
-    if (oldmember.voiceChannel == newmember.voiceChannel) {
-        return;
-    }
-    let embed = new Discord.RichEmbed();
-    embed.setColor(13632027).setAuthor(oldmember.displayName, oldmember.user.displayAvatarURL).setTimestamp();
-    if (oldmember.voiceChannel == null && newmember.voiceChannel != null) {
-        embed.setDescription("<@" + oldmember.id + "> joined voice channel `#" + newmember.voiceChannel.name + "`");
-    } else if (newmember.voiceChannel == null && oldmember.voiceChannel != null) {
-        embed.setDescription("<@" + oldmember.id + "> left voice channel `#" + oldmember.voiceChannel.name + "`");
-    } else {
-        embed.setDescription("<@" + oldmember.id + "> switched voice channel `#" + oldmember.voiceChannel.name + "` -> `#" + newmember.voiceChannel.name + "`");
-    }
-    botcmds.send(embed);
-}
-
 function giveAwards(msg) {
     msgRef = msg;
     getMsgs(bot);

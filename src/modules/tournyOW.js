@@ -269,8 +269,8 @@ function makeTeams(msg) {
 
 function makeChannels(msg) {
 	for (var i = 0; i < teams.length; i++) {
-		if (bot.channels.find("name", teamNames[i]) == null) {
-			msg.guild.createChannel(teamNames[i], {type:"voice"});
+		if (bot.channels.cache.array()[teamNames[i]] == undefined) {
+			msg.guild.channels.create(teamNames[i], {type:"voice"});
 		}
 	}
 }
@@ -570,10 +570,10 @@ function makeTeamEmbed(t) {
 }
 
 function clear() {
-	let defaultChannelID = bot.channels.find("name", defaultChannel);
+	let defaultChannelID = bot.channels.cache.array().find(chan => chan.name === defaultChannel);
 	let chans = [];
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.find("name", teamNames[i]);
+		let chan = bot.channels.cache.array().find(chan => chan.name === teamNames[i]);
 		if (chan != null) {
 			chans.push(chan);
 		}
@@ -583,7 +583,7 @@ function clear() {
 			if (teams[i][j][3] != null) {
 				for (var k = 0; k < chans.length; k++) {
 					if (chans[k] == teams[i][j][3].voiceChannel) {
-						teams[i][j][3].setVoiceChannel(defaultChannelID);
+						teams[i][j][3].voice.setChannel(defaultChannelID);
 					}
 				}
 			}
@@ -606,10 +606,10 @@ function clear() {
 
 function movePlayers(msg) {
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.find("name", teamNames[i]);
+		let chan = bot.channels.chach.array().find(chan => chan.name === teamNames[i]);
 		for (var j = 0; j < teams[i].length; j++) {
 			if (teams[i][j][3] != null) {
-				teams[i][j][3].setVoiceChannel(chan);
+				teams[i][j][3].voice.setChannel(chan);
 				console.log('Moved!');
 			}
 		}

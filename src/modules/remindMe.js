@@ -48,12 +48,14 @@ function ping (msg) {
     date = date.trim();
     if(date.length != 5 || parseInt(date.substring(0,2)) > 12 || date.charAt(2) != '/' || parseInt(date.substring(3,5)) > 31) {
         msg.channel.send("Date format must be MM/DD");
+        deletePing(msg);
         return;
     }
     var time = msg.content.split(" ")[2];
     time = time.trim();
     if(time.length != 5 || parseInt(time.substring(0,2)) > 23 || time.charAt(2) != ':' || parseInt(time.substring(3,5)) > 59) {
         msg.channel.send("Time format must be HH:MM and between 00:00 and 23:59");
+        deletePing(msg);
         return;
     }
     var pingTime = new Date();
@@ -66,6 +68,7 @@ function ping (msg) {
     var timer = pingTime.getTime() - currTime.getTime();
     if(timer < 0){
         msg.channel.send("Must be a time in the future.");
+        deletePing(msg);
         return;
     }
 
@@ -74,19 +77,27 @@ function ping (msg) {
         .setDescription("Ping set for " + pingTime);
     botcmds.send(embed);
 
-    setTimeout(pingNow, timer, msg);
+    if(timer > 2073600000){
+        setTimeout(ping, 2073600000, msg);
+    } else {
+        setTimeout(pingNow, timer, msg);
+    }
 }
 
 function pingNow(msg) {
     var messaged = {};
     msg.reactions.cache.forEach(reaction => {
-        reaction.users.cache.forEach(user => {
+        reaction.users.fetch().then(users => users.forEach(function(user) {
             if(messaged[user.username] == undefined){
                 messaged[user.username] = true;
                 user.send(msg.content.substring(18));
             }
-        })
+        }))
     });
+    deletePing(msg);
+}
+
+function deletePing(msg) {
     delete reminders[msg.id];
     var jsonData = JSON.stringify(reminders);
     fs.writeFileSync(path, jsonData, function (err) { if (err) { console.log(err); } });
