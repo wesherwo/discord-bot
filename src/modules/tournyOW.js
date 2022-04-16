@@ -33,57 +33,57 @@ var maps = [assault, escort, hybrid, control];
 var joinMsgs = settings["joinMsgs"];
 var leaveMsgs = settings["leaveMsgs"];
 
-var iconPath = 'Resources/TeamImages/';
-var OWLIcons = fs.readdirSync(iconPath).slice(1);
+//Change later
+var OWLIcons = JSON.parse(fs.readFileSync("Resources/Images/DefaultImages.json")).images;
 
 exports.commands = {
-	"join": (msg) => {
+	"owjoin": (msg) => {
 		join(msg);
 	},
-	"leave": (msg) => {
+	"owleave": (msg) => {
 		leave(msg);
 	},
-	"kick": (msg) => {
+	"owkick": (msg) => {
 		kick(msg);
 	},
-	"players": (msg) => {
+	"owplayers": (msg) => {
 		printPlayers(msg);
 	},
-	"maketeams": (msg) => {
+	"owmaketeams": (msg) => {
 		makeTeams(msg);
 		makeChannels(msg);
 	},
-	"teams": (msg) => {
+	"owteams": (msg) => {
 		printTeams(msg);
 	},
-	"teamstats": (msg) => {
+	"owteamstats": (msg) => {
 		printTeamData(msg);
 	},
-	"makematches": (msg) => {
+	"owmakematches": (msg) => {
 		makeMatches();
 	},
-	"matches": (msg) => {
+	"owmatches": (msg) => {
 		printMatches(msg);
 	},
-	"onematch": (msg) => {
+	"owonematch": (msg) => {
 		oneMatch(msg);
 	},
-	"teamname": (msg) => {
+	"owteamname": (msg) => {
 		nameTeam(msg);
 	},
-	"teamicon": (msg) => {
+	"owteamicon": (msg) => {
 		changeIcon(msg);
 	},
-	"tie": (msg) => {
+	"owtie": (msg) => {
 		tie(msg);
 	},
-	"test": (msg) => {
+	"owtest": (msg) => {
 		testTeams(msg);
 	},
-	"clear": (msg) => {
+	"owclear": (msg) => {
 		clear();
 	},
-	"moveplayers": (msg) => {
+	"owmoveplayers": (msg) => {
 		movePlayers(msg);
 	},
 	"owhelp": (msg) => {
@@ -116,11 +116,11 @@ exports.commands = {
 
 exports.setRefs = (refs) => {
 	bot = refs.bot;
-	prefix = refs.prefix;
+	prefix = refs.prefix + "ow";
 }
 
 exports.getHelp = () => {
-	return [{name:prefix + "owhelp",value:"Overwatch tournament commands"}];
+	return [{name:prefix + "help",value:"Overwatch tournament commands"}];
 }
 
 function scoreTeams(plrs) {
@@ -552,20 +552,11 @@ function makeTeamEmbed(t) {
 		}
 	}
 	let embed = new Discord.RichEmbed()
-	if (imgDefault[t] == true) {
-		let attachment = new Discord.Attachment(iconPath + teamImg[t], teamImg[t]);
-		embed.setColor(13632027)
-			.setDescription(s)
-			.attachFile(attachment)
-			.setThumbnail('attachment://' + teamImg[t])
-			.setAuthor(teamNames[t], 'attachment://' + teamImg[t]);
-	} else {
-		embed.setColor(13632027)
-			.setDescription(s)
-			.attachFile(attachment)
-			.setThumbnail(teamImg[t])
-			.setAuthor(teamNames[t], teamImg[t]);
-	}
+	embed.setColor(13632027)
+		.setDescription(s)
+		.attachFile(attachment)
+		.setThumbnail(teamImg[t])
+		.setAuthor(teamNames[t], teamImg[t]);
 	return embed;
 }
 

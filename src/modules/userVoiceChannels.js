@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const Permissions = Discord.Permissions;
 
 var bot;
 var prefix;
@@ -89,7 +90,7 @@ function makeChannel(member, name) {
 
 function moveUser(member, chan) {
     channels[chan.id] = { "owner": member };
-    chan.setParent(userChannelCategory.parent);
+    chan.setParent(userChannelCategory.parent, {lockPermissions:false});
     if (member.voice.channel != null) {
         member.voice.setChannel(chan);
     }
@@ -135,38 +136,36 @@ function rename(msg) {
 function lock(msg) {
     var chan = getOwnedChannel(msg.member);
     if (chan != null) {
-        chan.replacePermissionOverwrites({
-            overwrites: [
+        chan.permissionOverwrites.set([
                 {
                     id: msg.author.id,
-                    allow: ['CONNECT']
+                    allow: [Permissions.FLAGS.CONNECT]
                 },
                 {
                     id: bot.user.id,
-                    allow: ['CONNECT']
+                    allow: [Permissions.FLAGS.CONNECT]
                 },
                 {
-                    id: bot.guilds.cache.array()[0].defaultRole,
-                    deny: ['CONNECT']
+                    id: bot.guilds.cache.array()[0].roles.everyone.id,
+                    deny: [Permissions.FLAGS.CONNECT]
                 }
             ],
-            reason: 'Owner locked channel'
-        });
+            'Owner locked channel'
+        );
     }
 }
 
 function unlock(msg) {
     var chan = getOwnedChannel(msg.member);
     if (chan != null) {
-        chan.replacePermissionOverwrites({
-            overwrites: [
+        chan.permissionOverwrites.set([
                 {
-                    id: bot.guilds.cache.array()[0].defaultRole,
-                    allow: ['CONNECT']
+                    id: bot.guilds.cache.array()[0].roles.everyone.id,
+                    allow: [Permissions.FLAGS.CONNECT]
                 }
             ],
-            reason: 'Owner unlocked channel'
-        });
+            'Owner unlocked channel'
+        );
     }
 }
 
@@ -179,20 +178,22 @@ function kick(msg) {
     var chan = getOwnedChannel(msg.member);
     if (chan != null) {
         var members = chan.members.array();
+        var bool = false;
         members.forEach(member => {
             if (member.displayName == name) {
                 member.voice.setChannel(null);
+                bool = true;
                 return;
             }
         });
-        msg.channel.send("User not found in your channel.");
+        if (!bool) { msg.channel.send("User not found in your channel."); }
     }
 }
 
 function allow(msg) {
     var name = msg.content.split(" ")[1];
     if (name == null) {
-        msg.channel.send("Must give a user to kick.");
+        msg.channel.send("Must give a user to allow.");
         return;
     }
     var chan = getOwnedChannel(msg.member);
@@ -200,7 +201,14 @@ function allow(msg) {
         var members = bot.channels.array()[0].guild.members.array();
         members.forEach(member => {
             if (member.displayName == name) {
-                chan.overwritePermissions(member.id,{CONNECT:true});
+                chan.permissionOverwrites.set([
+                        {
+                            id: member.id,
+                            allow: [Permissions.FLAGS.CONNECT]
+                        }
+                    ],
+                    'Owner unlocked channel'
+                );
                 return;
             }
         });

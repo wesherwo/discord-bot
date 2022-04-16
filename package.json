@@ -4,12 +4,17 @@
     "private": true,
     "description": "Discord bot that does stuff and things",
     "dependencies": {
-        "@discordjs/opus": "^0.3.3",
-        "discord.js": "^12.5.1",
+        "@discordjs/opus": "^0.5.0",
+        "bufferutil": "^4.0.3",
+        "discord.js": "^12.5.3",
         "ffmpeg": "0.0.4",
+        "ffmpeg-static": "^4.3.0",
         "fluent-ffmpeg": "^2.1.2",
         "node-fetch": "^2.6.1",
-        "ytdl-core": "^4.4.5"
+        "node-gyp": "^8.0.0",
+        "opusscript": "0.0.8",
+        "utf-8-validate": "^5.0.5",
+        "ytdl-core": "^4.7.0"
     },
     "repository": {}
 }
