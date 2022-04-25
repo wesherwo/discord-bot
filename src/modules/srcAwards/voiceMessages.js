@@ -59,13 +59,11 @@ function getVoiceChannel(channels, channId) {
 }
 
 function getChannId(channName) {
-    var channels = botRef.channels.array();
-    for (var i = 0; i < channels.length; i++) {
-        if (channels[i].name == channName) {
-            return channels[i].id;
-        }
-    }
-    return null;
+    var channelID = null
+    botRef.channels.cache.each(chan => {if (chan.name == channName) {
+        channelID = chan.id;
+    }});
+    return channelID;
 }
 
 function party() {

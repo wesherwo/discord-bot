@@ -1,5 +1,6 @@
 const ytdl = require('ytdl-core');
 const fs = require("fs");
+const { MessageEmbed } = require('discord.js');
 const fetch = require("node-fetch");
 const { getMaxListeners } = require('process');
 var bot;
@@ -68,14 +69,8 @@ exports.setRefs = (refs) => {
 }
 
 function getSongHelp(msg) {
-	let tosend = {
-		embed: {
-			color: 3447003,
-			title: "List of commands",
-			fields: []
-		}
-	};
-	tosend.embed.fields =
+	let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("List of commands").addFields(
 		[{ name: prefix + "play [song]", value: "Add a song to the queue" },
 		{ name: prefix + "skip", value: "Skip the current song" },
 		{ name: prefix + "stop", value: "Stop playing music" },
@@ -86,8 +81,8 @@ function getSongHelp(msg) {
 		{ name: prefix + "makeplaylist [name]", value: "Creates a playlist with the name given.(name can only be one word)" },
 		{ name: prefix + "deleteplaylist [name]", value: "Deletes a playlist" },
 		{ name: prefix + "addtoplaylist [playlist] [song]", value: "Adds a song to the playlist" },
-		{ name: prefix + "removefromplaylist [playlist] [song]", value: "Removes a song from the playlist" }];
-	msg.channel.send(tosend);
+		{ name: prefix + "removefromplaylist [playlist] [song]", value: "Removes a song from the playlist" }]);
+	msg.channel.send({embeds: [embed]});
 }
 
 async function execute(message) {

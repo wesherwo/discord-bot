@@ -47,9 +47,9 @@ exports.setRefs = (refs) => {
 exports.startup = () => {
     userChannelCategory = bot.channels.cache.find(val => val.name === "Join to create channel");
     if (userChannelCategory == null) {
-        var guild = bot.guilds.cache.array()[0];
-        guild.channels.create("USER CHANNELS", { type: "category" }).then(parent => {
-            guild.channels.create("Join to create channel", { type: "voice" }).then(chan => {
+        var guild = bot.guilds.cache.at(0);
+        guild.channels.create("USER CHANNELS", { type: "GUILD_CATEGORY" }).then(parent => {
+            guild.channels.create("Join to create channel", { type: "GUILD_VOICE" }).then(chan => {
                 chan.setParent(parent);
             });
         });
@@ -85,7 +85,7 @@ function makeChannelByMsg(msg) {
 }
 
 function makeChannel(member, name) {
-    bot.guilds.cache.array()[0].channels.create(name, { type: "voice" }).then(chan => { moveUser(member, chan); });
+    bot.guilds.cache.at(0).channels.create(name, { type: 'GUILD_VOICE' }).then(chan => { moveUser(member, chan); });
 }
 
 function moveUser(member, chan) {
@@ -100,7 +100,7 @@ function moveUser(member, chan) {
 
 function checkIfEmpty(chan) {
     return function () {
-        if (chan.members.array().length == 0) {
+        if (chan.members.size == 0) {
             delete channels[chan.id];
             chan.delete();
             return;
@@ -111,9 +111,9 @@ function checkIfEmpty(chan) {
 }
 
 function getOwnedChannel(member) {
-    chans = userChannelCategory.parent.children.array();
+    chans = userChannelCategory.parent.children;
     var foundChan = null;
-    chans.forEach(chan => {
+    chans.each(chan => {
         if (channels[chan.id] != undefined && channels[chan.id].owner == member) {
             foundChan = chan;
         }
@@ -146,7 +146,7 @@ function lock(msg) {
                     allow: [Permissions.FLAGS.CONNECT]
                 },
                 {
-                    id: bot.guilds.cache.array()[0].roles.everyone.id,
+                    id: bot.guilds.cache.at(0).roles.everyone.id,
                     deny: [Permissions.FLAGS.CONNECT]
                 }
             ],
@@ -156,11 +156,11 @@ function lock(msg) {
 }
 
 function unlock(msg) {
-    var chan = getOwnedChannel(msg.member);
+    var chan = getOwnedChannel(msg.member);''
     if (chan != null) {
         chan.permissionOverwrites.set([
                 {
-                    id: bot.guilds.cache.array()[0].roles.everyone.id,
+                    id: bot.guilds.cache.at(0).roles.everyone.id,
                     allow: [Permissions.FLAGS.CONNECT]
                 }
             ],
@@ -177,9 +177,9 @@ function kick(msg) {
     }
     var chan = getOwnedChannel(msg.member);
     if (chan != null) {
-        var members = chan.members.array();
+        var members = chan.members;
         var bool = false;
-        members.forEach(member => {
+        members.each(member => {
             if (member.displayName == name) {
                 member.voice.setChannel(null);
                 bool = true;
@@ -198,17 +198,10 @@ function allow(msg) {
     }
     var chan = getOwnedChannel(msg.member);
     if (chan != null) {
-        var members = bot.channels.array()[0].guild.members.array();
-        members.forEach(member => {
+        var members = bot.guilds.cache.at(0).members.cache;
+        members.each(member => {
             if (member.displayName == name) {
-                chan.permissionOverwrites.set([
-                        {
-                            id: member.id,
-                            allow: [Permissions.FLAGS.CONNECT]
-                        }
-                    ],
-                    'Owner unlocked channel'
-                );
+                chan.permissionOverwrites.edit(member.id, {CONNECT: true});
                 return;
             }
         });

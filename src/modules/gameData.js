@@ -1,4 +1,4 @@
-const Discord = require('discord.js');
+const { Discord, MessageEmbed} = require('discord.js');
 const fs = require('fs');
 var bot;
 var prefix;
@@ -33,25 +33,23 @@ exports.stop = () => {
 }
 
 function runEachMin() {
-    calcGameData(bot.guilds.cache.array()[0].presences.cache.array());
+    calcGameData(bot.guilds.cache.at(0).presences.cache);
     if(!stopped){
         setTimeout(runEachMin, 60000);
     }
 }
 
 function calcGameData(ppl) {
-    for (var i = 0; i < ppl.length; i++) {
-        games = ppl[i].activities.forEach(game => {
-            if (game.type == "PLAYING") {
-                var name = game.name;
-                if (!gameData.hasOwnProperty(name)) {
-                    gameData[name] = 1;
-                } else {
-                    gameData[name]++;
-                }
+    ppl.each(user => games = user.activities.forEach(game => {
+        if (game.type == "PLAYING") {
+            var name = game.name;
+            if (!gameData.hasOwnProperty(name)) {
+                gameData[name] = 1;
+            } else {
+                gameData[name]++;
             }
-        });
-    }
+        }
+    }));
     var data = JSON.parse(fs.readFileSync(path));
     for (var i in gameData) {
         if (!data.gametime.hasOwnProperty(i)) {
@@ -79,14 +77,9 @@ function printGameData(msg) {
     }
     var max = sorted[0][1];
 
-    var s = '';
-    var tosend = {
-		embed: {
-			color: 3447003,
-			title: "Bot running for " + printTime(data.time),
-			fields: []
-		}
-    };
+    var s = "";
+    let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("Bot running for " + printTime(data.time));
     var page = 1;
     for (var i = 0; i < sorted.length; i++) {
         if (ignoreGames.indexOf(sorted[i][0]) == -1) {
@@ -94,18 +87,13 @@ function printGameData(msg) {
             for (var j = 0; (j < (sorted[i][1] / max) * 40) || (j < 1); j++) {
                 s += String.fromCharCode(10074);
             }
-            tosend.embed.fields.push({name:sorted[i][0] + " - played for " + printTime(sorted[i][1]),value:s});
+            embed.addField(sorted[i][0] + " - played for " + printTime(sorted[i][1]), s);
         }
-        if((tosend.embed.fields.length % 20 == 0 || i == sorted.length - 1) && tosend.embed.fields.length > 0){
-            msg.channel.send(tosend);
+        if((embed.fields.length % 20 == 0 || i == sorted.length - 1) && embed.fields.length > 0){
+            msg.channel.send({embeds: [embed]});
             page++;
-            tosend = {
-                embed: {
-                    color: 3447003,
-                    title: "page " + page,
-                    fields: []
-                }
-            };
+            embed = new MessageEmbed();
+            embed.setColor(3447003).setTitle("page " + page);
         }
     }
 }

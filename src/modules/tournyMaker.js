@@ -1,4 +1,4 @@
-const { MessageEmbed, MessageAttachment } = require('discord.js');
+const { MessageEmbed } = require('discord.js');
 const fs = require('fs');
 var bot;
 var prefix;
@@ -91,13 +91,9 @@ exports.commands = {
 		currentSettings(msg);
 	},
 	"tournyhelp": (msg) => {
-		let tosend = {embed: {
-			color: 3447003,
-			title: "List of commands",
-			fields: []
-		  }
-		};
-		tosend.embed.fields = [{name:prefix + "Join [MMR]",value:" Join tournament"},
+		let embed = new MessageEmbed();
+    	embed.setColor(3447003).setTitle("List of commands").addFields(
+			[{name:prefix + "Join [MMR]",value:" Join tournament"},
 			{name:prefix + "Leave",value:"Leave tournament"},
 			{name:prefix + "TeamName",value:"Name your team"},
 			{name:prefix + "TeamIcon [link](.png or .jpg)",value:"Set the icon for your team"},
@@ -115,8 +111,8 @@ exports.commands = {
 			{name:prefix + "setplayers",value:"Sets the amount of players for each team"},
 			{name:prefix + "setminmmr",value:"Sets the minimum mmr"},
 			{name:prefix + "setmaxmmr",value:"Sets the maximum mmr"},
-			{name:prefix + "tournyinfo",value:"Displays current settings for the tournament"}];
-		msg.channel.send(tosend);
+			{name:prefix + "tournyinfo",value:"Displays current settings for the tournament"}]);
+		msg.channel.send({embeds: [embed]});
 	}
 }
 
@@ -255,8 +251,8 @@ function makeTeams(msg) {
 
 function makeChannels(msg) {
 	for (var i = 0; i < teams.length; i++) {
-		if (bot.channels.cache.array()[teamNames[i]] == undefined) {
-			//msg.guild.channels.create(teamNames[i], {type:"voice"});
+		if (bot.channels.cache.at([teamNames[i]]) == undefined) {
+			msg.guild.channels.create(teamNames[i], {type:"GUILD_VOICE"});
 		}
 	}
 }
@@ -367,7 +363,7 @@ function printTeams(msg) {
 		return;
 	}
 	for (var i = 0; i < teamNum; i++) {
-		msg.channel.send(makeTeamEmbed(i));
+		msg.channel.send({embeds: [makeTeamEmbed(i)]});
 	}
 }
 
@@ -493,15 +489,15 @@ function makeTeamEmbed(t) {
 	embed.setColor(13632027)
 		.setDescription(s)
 		.setThumbnail(teamImg[t])
-		.setAuthor(teamNames[t], teamImg[t]);
+		.setAuthor({name: teamNames[t], iconURL: teamImg[t]});
 	return embed;
 }
 
 function clear() {
-	let defaultChannelID = bot.channels.cache.array().find(chan => chan.name === defaultChannel);
+	let defaultChannelID = bot.channels.cache.find(chan => chan.name === defaultChannel);
 	let chans = [];
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.cache.array().find(chan => chan.name === teamNames[i]);
+		let chan = bot.channels.cache.find(chan => chan.name === teamNames[i]);
 		if (chan != null) {
 			chans.push(chan);
 		}
@@ -534,7 +530,7 @@ function clear() {
 
 function movePlayers() {
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.chach.array().find(chan => chan.name === teamNames[i]);
+		let chan = bot.channels.chach.find(chan => chan.name === teamNames[i]);
 		for (var j = 0; j < teams[i].length; j++) {
 			if (teams[i][j][2] != null) {
 				teams[i][j][2].voice.setChannel(chan);

@@ -15,7 +15,7 @@ exports.setRefs = (refs) => {
 exports.startup = () => {
     botcmds = bot.channels.cache.find(val => val.name === "bot-cmds");
     if (botcmds == null) {
-        var guild = bot.guilds.cache.array()[0];
+        var guild = bot.guilds.cache.at(0);
         guild.channels.create("bot-cmds", { type: "text" });
     }
     bot.on("voiceStateUpdate", (oldMember, newMember) => {
@@ -34,7 +34,7 @@ function voiceUpdate(oldmember, newmember) {
         return;
     }
     let embed = new MessageEmbed();
-    embed.setColor(13632027).setAuthor(oldmember.member.user.username, oldmember.member.user.displayAvatarURL()).setTimestamp();
+    embed.setColor(13632027).setAuthor({name: oldmember.member.user.username, iconURL: oldmember.member.user.displayAvatarURL()}).setTimestamp();
     if (oldmember.channel == null && newmember.channel != null) {
         embed.setDescription("<@" + oldmember.member.id + "> joined voice channel `#" + newmember.member.voice.channel.name + "`");
     } else if (newmember.channel == null && oldmember.channel != null) {
@@ -42,24 +42,24 @@ function voiceUpdate(oldmember, newmember) {
     } else {
         embed.setDescription("<@" + oldmember.member.id + "> switched voice channel `#" + oldmember.channel.name + "` -> `#" + newmember.channel.name + "`");
     }
-    botcmds.send(embed);
+    botcmds.send({embeds: [embed]});
 }
 
 function messageDelete(message) {
     let embed = new MessageEmbed();
-    embed.setColor(13632027).setAuthor(message.member.user.username, message.member.user.displayAvatarURL()).setTimestamp()
+    embed.setColor(13632027).setAuthor({name: oldmember.member.user.username, iconURL: oldmember.member.user.displayAvatarURL()}).setTimestamp()
         .setDescription( "Message sent by <@" + message.member.id + "> deleted in `#" + message.channel.name + "`\n" + message.content);
-    botcmds.send(embed);
-}
+        botcmds.send({embeds: [embed]});
+    }
 
 function messageUpdate(oldMessage, newMessage) {
     if (oldMessage.member == null || oldMessage.member.user == bot.user) {
         return;
     }
     let embed = new MessageEmbed();
-    embed.setColor(13632027).setAuthor(oldMessage.member.user.username, oldMessage.member.user.displayAvatarURL()).setTimestamp()
+    embed.setColor(13632027).setAuthor({name: oldmember.member.user.username, iconURL: oldmember.member.user.displayAvatarURL()}).setTimestamp()
         .setDescription("Message edited in `#" + oldMessage.channel.name + "`[Jump to Message](" + oldMessage.url + ")")
         .addField("Before", oldMessage.content)
         .addField("After", newMessage.content);
-    botcmds.send(embed);
-}
+        botcmds.send({embeds: [embed]});
+    }

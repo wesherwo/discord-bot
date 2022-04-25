@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { MessageEmbed } = require('discord.js');
 var bot;
 var prefix;
 const settings = JSON.parse(fs.readFileSync("Resources/ModuleResources/tournyOW.json"));
@@ -87,13 +88,9 @@ exports.commands = {
 		movePlayers(msg);
 	},
 	"owhelp": (msg) => {
-		let tosend = {embed: {
-			color: 3447003,
-			title: "List of commands",
-			fields: []
-		  }
-		};
-		tosend.embed.fields = [{name:prefix + "games",value:"Game stats for the server."},
+		let embed = new MessageEmbed();
+    	embed.setColor(3447003).setTitle("List of commands").addFields(
+			[{name:prefix + "games",value:"Game stats for the server."},
 			{name:prefix + "resetgames",value:" Reset the game stats for the server."},
 			{name:prefix + "Join [SR] [Role]",value:" Join tournament(Roles = dps, tank, heal, flex)"},
 			{name:prefix + "Leave",value:" Leave tournament"},
@@ -109,8 +106,8 @@ exports.commands = {
 			{name:prefix + "MakeMatches",value:" Make matches and channels for the tournament"},
 			{name:prefix + "MovePlayers",value:" Moves players to their team channels"},
 			{name:prefix + "Clear",value:" Clear player list and remove generated channels"},
-			{name:prefix + "Kick [name]",value:" kick from the tournament"}];
-		msg.channel.send(tosend);
+			{name:prefix + "Kick [name]",value:" kick from the tournament"}]);
+		msg.channel.send({embeds: [embed]});
 	}
 }
 
@@ -269,7 +266,7 @@ function makeTeams(msg) {
 
 function makeChannels(msg) {
 	for (var i = 0; i < teams.length; i++) {
-		if (bot.channels.cache.array()[teamNames[i]] == undefined) {
+		if (bot.channels.cache.at([teamNames[i]]) == undefined) {
 			msg.guild.channels.create(teamNames[i], {type:"voice"});
 		}
 	}
@@ -417,7 +414,7 @@ function printTeams(msg) {
 		return;
 	}
 	for (var i = 0; i < teamNum; i++) {
-		msg.channel.send(makeTeamEmbed(i));
+		msg.channel.send({embeds: [makeTeamEmbed(i)]});
 	}
 }
 
@@ -556,15 +553,15 @@ function makeTeamEmbed(t) {
 		.setDescription(s)
 		.attachFile(attachment)
 		.setThumbnail(teamImg[t])
-		.setAuthor(teamNames[t], teamImg[t]);
+		.setAuthor({name: teamNames[t], iconURL: teamImg[t]});
 	return embed;
 }
 
 function clear() {
-	let defaultChannelID = bot.channels.cache.array().find(chan => chan.name === defaultChannel);
+	let defaultChannelID = bot.channels.cache.find(chan => chan.name === defaultChannel);
 	let chans = [];
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.cache.array().find(chan => chan.name === teamNames[i]);
+		let chan = bot.channels.cache.find(chan => chan.name === teamNames[i]);
 		if (chan != null) {
 			chans.push(chan);
 		}
@@ -597,7 +594,7 @@ function clear() {
 
 function movePlayers(msg) {
 	for (var i = 0; i < teams.length; i++) {
-		let chan = bot.channels.chach.array().find(chan => chan.name === teamNames[i]);
+		let chan = bot.channels.chach.find(chan => chan.name === teamNames[i]);
 		for (var j = 0; j < teams[i].length; j++) {
 			if (teams[i][j][3] != null) {
 				teams[i][j][3].voice.setChannel(chan);

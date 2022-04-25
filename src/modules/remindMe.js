@@ -73,9 +73,9 @@ function ping (msg) {
     }
 
     let embed = new MessageEmbed();
-    embed.setColor(13632027).setAuthor(msg.author.username, msg.author.displayAvatarURL()).setTimestamp()
+    embed.setColor(13632027).setAuthor({name: msg.author.username, iconURL: msg.author.displayAvatarURL()}).setTimestamp()
         .setDescription("Ping set for " + pingTime);
-    botcmds.send(embed);
+    botcmds.send({embeds: [embed]});
 
     if(timer > 2073600000){
         setTimeout(ping, 2073600000, msg);
@@ -86,13 +86,13 @@ function ping (msg) {
 
 function pingNow(msg) {
     var messaged = {};
-    msg.reactions.cache.forEach(reaction => {
-        reaction.users.fetch().then(users => users.forEach(function(user) {
+    msg.reactions.cache.each(reaction => {
+        reaction.users.cache.each(user => {
             if(messaged[user.username] == undefined){
                 messaged[user.username] = true;
                 user.send(msg.content.substring(18));
             }
-        }))
+        })
     });
     deletePing(msg);
 }

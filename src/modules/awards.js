@@ -47,13 +47,12 @@ function giveAwards(msg) {
 }
 
 function getMsgs() {
-    var channelList = bot.channels.array();
-    for (var i = 0; i < channelList.length; i++) {
-        if (channelList[i].type == "text") {
+    bot.channels.cache.each(chan => {
+        if (chan.type == "text") {
             promises.push(false);
-            channelList[i].fetchMessages({ limit: 100 }).then(messages => computeMsgs(messages.array(), num++));
+            chan.fetchMessages({ limit: 100 }).then(messages => computeMsgs(messages.cache, num++));
         }
-    }
+    });
 }
 
 function ignoreCh(channel) {
@@ -75,17 +74,17 @@ function ignorePerson(person) {
 }
 
 function computeMsgs(messages, mynum) {
-    for (var i = 0; i < messages.length; i++) {
-        if (messages[i].createdAt >= getLastMonth() && !ignorePerson(messages[i].author) && !ignoreCh(messages[i].channel)) {
-            allMessages.push(messages[i]);
-        } else if (messages[i].createdAt >= getLastMonth() && messages[i].author.id == bot.user.id) {
-            allBotMessages.push(messages[i]);
+    messages.each(msg => {
+        if (msg.createdAt >= getLastMonth() && !ignorePerson(msg.author) && !ignoreCh(msg.channel)) {
+            allMessages.push(msg);
+        } else if (msg.createdAt >= getLastMonth() && msg.author.id == bot.user.id) {
+            allBotMessages.push(msg);
         }
-    }
-    if (messages.length > 0 && messages[messages.length - 1].createdAt >= getLastMonth()) {
+    });
+    if (messages.size > 0 && messages.cache.at(messages.length - 1).createdAt >= getLastMonth()) {
         promises.push(false);
-        messages[messages.length - 1].channel.fetchMessages({ limit: 100, before: messages[messages.length - 1].id })
-            .then(messages => computeMsgs(messages.array(), num++));
+        messages.cache.at(messages.length - 1).channel.fetchMessages({ limit: 100, before: messages.cache.at(messages.length - 1).id })
+            .then(messages => computeMsgs(messages.cache, num++));
     }
     promises[mynum] = true;
     if (allThreadsComplete()) {
@@ -112,43 +111,41 @@ function getLastMonth() {
 
 function getReactionCount(reactions) {
     var count = 0;
-    for (var i = 0; i < reactions.length; i++) {
-        count += reactions[i].count;
-    }
+    reactions.each(reaction => {count += reaction.count;});
     return count;
 }
 
 function nums(message) {
     if (ppl[message.author.id] != null) {
         ppl[message.author.id]["messages"]++;
-        ppl[message.author.id]["reactions"] += getReactionCount(message.reactions.array());
+        ppl[message.author.id]["reactions"] += getReactionCount(message.reactions.cache);
         return;
     }
-    ppl[message.author.id] = { "messages": 1, "reactions": getReactionCount(message.reactions.array()) };
+    ppl[message.author.id] = { "messages": 1, "reactions": getReactionCount(message.reactions.cache) };
 }
 
 function getUserName(userId) {
-    var members = bot.channels.array()[0].guild.members.array();
-    for (var i = 0; i < members.length; i++) {
-        if (members[i].id == userId) {
-            if (members[i].nickname == null) {
-                return members[i].user.username;
+    var mem = null;
+    bot.channels.cache.at(0).guild.members.cache.each(member => {
+        if (member.id == userId) {
+            if (member.nickname == null) {
+                mem = member.user.username;
             } else {
-                return members[i].nickname;
+                mem = member.nickname;
             }
         }
-    }
-    return null;
+    });
+    return mem;
 }
 
 function getUser(userId) {
-    var members = bot.channels.array()[0].guild.members.array();
-    for (var i = 0; i < members.length; i++) {
-        if (members[i].id == userId) {
-            return members[i].user;
+    var mem = null;
+    var members = bot.channels.cache.at(0).guild.members.cache.each(member => {
+        if (member.id == userId) {
+            mem = member.user;
         }
-    }
-    return null;
+    });
+    return mem;
 }
 
 function printTime(time) {
@@ -167,7 +164,7 @@ function giveMsgAwards() {
 
     loudMouth = Object.entries(ppl).sort(function (a, b) { return b.messages - a.messages });
     mrpopular = Object.entries(ppl).sort(function (a, b) { return b.reactions - a.reactions });
-    mostpopularmsg = allMessages.sort(function (a, b) { return getReactionCount(b.reactions.array()) - getReactionCount(a.reactions.array()) });
+    mostpopularmsg = allMessages.sort(function (a, b) { return getReactionCount(b.reactions.cache) - getReactionCount(a.reactions.cache) });
     longwind = allMessages.sort(function (a, b) { return b.content.length - a.content.length });
     vm.makeVoiceCalcs(allBotMessages, bot);
     longestTime = vm.getLongestTime();
@@ -194,41 +191,41 @@ function printLoudMouth(loud) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
         .setDescription("Loudmouth: " + getUserName(loud[0]) + " with " + loud.messages + " messages.")
-        .setAuthor(getUserName(loud[0]), getUser(loud[0]).avatarURL);
-    msgRef.channel.send(embed);
+        .setAuthor({name: getUserName(loud[0]), iconURL: getUser(loud[0]).avatarURL});
+    msgRef.channel.send({embeds: [embed]});
 }
 
 function printPopMsg(msg) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
         .setDescription("Most popular message: " + getUserName(msg.author.id)
-            + " with " + getReactionCount(msg.reactions.array()) + " reactions on one message.")
-        .setAuthor(getUserName(msg.author.id), msg.author.avatarURL);
-    msgRef.channel.send(embed);
+            + " with " + getReactionCount(msg.reactions.cache) + " reactions on one message.")
+        .setAuthor({name: getUserName(msg.author.id), iconURL: msg.author.avatarURL});
+    msgRef.channel.send({embeds: [embed]});
 }
 
 function printMrPop(pop) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
-        .setDescription("Mr Popular: " + getUserName(pop[0]) + " with " + getReactionCount(pop.reactions.array()) + " reactions total.")
-        .setAuthor(getUserName(pop[0]), getUser(pop[0]).avatarURL);
-    msgRef.channel.send(embed);
+        .setDescription("Mr Popular: " + getUserName(pop[0]) + " with " + getReactionCount(pop.reactions.cache) + " reactions total.")
+        .setAuthor({name: getUserName(pop[0]), iconURL: getUser(pop[0]).avatarURL});
+    msgRef.channel.send({embeds: [embed]});
 }
 
 function printLongWind(long) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
         .setDescription("Long Winded: " + getUserName(long.author.id) + " with " + long.content.length + " characters.")
-        .setAuthor(getUserName(long.author.id), long.author.avatarURL);
-    msgRef.channel.send(embed);
+        .setAuthor({name: getUserName(long.author.id), iconURL: long.author.avatarURL});
+    msgRef.channel.send({embeds: [embed]});
 }
 
 function printLongTime(long) {
     let embed = new Discord.RichEmbed()
     embed.setColor(13632027)
         .setDescription("longestTime: " + getUserName(long[0]) + " with " + printTime(long[1]))
-        .setAuthor(getUserName(long[0]), getUser(long[0]).avatarURL);
-    msgRef.channel.send(embed);
+        .setAuthor({name: getUserName(long[0]), iconURL: getUser(long[0]).avatarURL});
+    msgRef.channel.send({embeds: [embed]});
 }
 // console.log("longestLoneWolfTime: " + getUserName(longestLonlyTime[0][0]) + " with " + printTime(longestLonlyTime[0][1]));
 // console.log("longestPartyKing: " + getUserName(longestPartyTime[0][0]) + " with " + printTime(longestPartyTime[0][1])); 

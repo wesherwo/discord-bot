@@ -1,7 +1,8 @@
-const Discord = require("discord.js");
+const { Discord, Client, Intents, MessageEmbed } = require("discord.js");
 const fs = require("fs");
 //bot reference
-const bot = new Discord.Client();
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS, 
+	Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.GUILD_VOICE_STATES] });
 //user settings
 const settings = require("./src/settings.js");
 
@@ -64,7 +65,7 @@ function startModules() {
 	});
 }
 
-bot.on("message", msg => {
+bot.on("messageCreate", msg => {
 	if (!msg.content.startsWith(settings.prefix())) return;
 	command = msg.content.toLowerCase().slice(settings.prefix().length).split(" ")[0];
 	if (commands.hasOwnProperty(command)) {
@@ -77,25 +78,19 @@ bot.on("message", msg => {
 	}
 });
 
+function getHelp(msg) {
+	let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("List of commands");
+	modules.forEach(function (mod) {
+		if (typeof mod.getHelp !== "undefined") {
+			embed.addFields(mod.getHelp());
+		}
+	});
+	embed.addFields(settings.getHelp());
+	msg.channel.send({embeds: [embed]});
+}
+
 bot.login(settings.token);
 settings.setSettingRefs({
 	"bot": bot
 });
-
-function getHelp(msg) {
-	let tosend = {
-		embed: {
-			color: 3447003,
-			title: "List of commands",
-			fields: []
-		}
-	};
-	modules.forEach(function (mod) {
-		if (typeof mod.getHelp !== "undefined") {
-			tosend.embed.fields = tosend.embed.fields.concat(mod.getHelp());
-		}
-	});
-	tosend.embed.fields = tosend.embed.fields.concat(settings.getHelp());
-
-	msg.channel.send(tosend);
-}

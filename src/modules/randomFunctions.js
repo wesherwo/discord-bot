@@ -32,6 +32,8 @@ function coinFlip (msg) {
 function diceRoll(msg) {
     var roll = 0;
     var arr = msg.content.slice(5).split('+');
+    var rolls = "";
+    var currRoll = 0;
     try {
         arr.forEach(element => {
             var split = element.toLowerCase().indexOf('d');
@@ -39,7 +41,13 @@ function diceRoll(msg) {
                 var dice = parseInt(element.substring(0,split).trim());
                 var sides = parseInt(element.substring(split + 1).trim());
                 for(var i = 0; i < dice; i++) {
-                    roll += Math.floor(Math.random() * sides) + 1;
+                    currRoll = Math.floor(Math.random() * sides) + 1
+                    roll += currRoll;
+                    if(currRoll == 1 || currRoll == sides) {
+                        rolls = rolls.concat("__**" + currRoll + "**__, ");
+                    } else {
+                        rolls = rolls.concat(currRoll + ", ");
+                    }
                 }
             } else {
                 roll += parseInt(element.trim());
@@ -49,5 +57,5 @@ function diceRoll(msg) {
         msg.channel.send("Format must be xDy+z.");
         return;
     }
-    msg.channel.send("You rolled a " + roll);
+    msg.channel.send("You rolled a " + roll + "\n\n" + rolls.substring(0, rolls.length-2));
 }

@@ -1,4 +1,5 @@
 const fs = require("fs");
+const { MessageEmbed } = require('discord.js');
 var bot;
 //user settings
 const settings = JSON.parse(fs.readFileSync("settings.json"));
@@ -54,23 +55,17 @@ exports.getHelp = () => {
 }
 
 function getSettingsHelp(msg) {
-	let tosend = {
-		embed: {
-			color: 3447003,
-			title: "List of commands",
-			fields: []
-		}
-	};
-	tosend.embed.fields = [{ name: prefix + "admincommands", value: "Displays the commands with admin privileges." },
-	{ name: prefix + "modules", value: "Shows modules." }];
-	tosend.embed.fields = tosend.embed.fields.concat(getSettingsPermissions());
-	tosend.embed.fields = tosend.embed.fields.concat(
+	let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("List of commands").addFields([{ name: prefix + "admincommands", value: "Displays the commands with admin privileges." },
+		{ name: prefix + "modules", value: "Shows modules." }]);
+	embed.addFields(getSettingsPermissions());
+	embed.addFields(
 		[{ name: prefix + "addadmincommand [command] [role]", value: "Add a role requirement to a command." },
 		{ name: prefix + "removeadmincommand [command] [role]", value: "remove a role requirement from a command." },
 		{ name: prefix + "setprefix [new prefix]", value: "change the pefix." },
 		{ name: prefix + "enablemodule [module name]", value: "Enable a module." },
 		{ name: prefix + "disablemodule [module name]", value: "Disable a module." }]);
-	msg.channel.send(tosend);
+		msg.channel.send({embeds: [embed]});
 }
 
 //used to check if user has required role for commands
@@ -103,15 +98,15 @@ function getSettingsPermissions() {
 	let s = "";
 	if (adminCommands.hasOwnProperty("settings")) {
 		if (adminCommands["settings"].length > 0) {
-			s = "Must be a " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][0]).name;
+			s = "Must be a " + bot.guilds.cache.at(0).roles.cache.find(role => role.id === adminCommands["settings"][0]).name;
 			for (var i = 1; i < adminCommands["settings"].length - 1; i++) {
-				s += ", " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][i]).name;
+				s += ", " + bot.guilds.cache.at(0).roles.cache.find(role => role.id === adminCommands["settings"][i]).name;
 			}
 			if (adminCommands["settings"].length > 2) {
 				s += ",";
 			}
 			if (adminCommands["settings"].length > 1) {
-				s += " or " + bot.guilds.cache.array()[0].roles.cache.find(role => role.id === adminCommands["settings"][adminCommands["settings"].length - 1]).name;
+				s += " or " + bot.guilds.cache.at(0).roles.cache.find(role => role.id === adminCommands["settings"][adminCommands["settings"].length - 1]).name;
 			}
 		}
 	}
@@ -131,40 +126,29 @@ function saveSettings() {
 
 function printAdminCommands(msg) {
 	var page = 1;
-	let tosend = {
-		embed: {
-			color: 3447003,
-			title: "List of commands.  Page " + page,
-			fields: []
-		}
-	};
+	let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("List of commands.  Page " + page);
 	for (var cmd in adminCommands) {
 		list = [];
 		adminCommands[cmd].forEach(element => {
-			list.push(bot.guilds.cache.array()[0].roles.cache.find(role => role.id === element).name);
+			list.push(bot.guilds.cache.at(0).roles.cache.find(role => role.id === element).name);
 		});
 		if (cmd == "settings") {
-			
 			for (var cmdset in settingCommands) {
-				tosend.embed.fields.push({ name: "" + prefix + settingCommands[cmdset], value:  list.sort().join(", ")});
+				embed.addField("" + prefix + settingCommands[cmdset], list.sort().join(", "));
 			}
 		} else {
-			tosend.embed.fields.push({ name: "" + prefix + cmd, value: list.sort().join(", ")});
+			embed.addField("" + prefix + cmd, list.sort().join(", "));
 		}
-		if(tosend.embed.fields.length % 20 == 0){
-            msg.channel.send(tosend);
+		if(embed.fields.length % 20 == 0){
+            msg.channel.send({embeds: [embed]});
             page++;
-            tosend = {
-                embed: {
-					color: 3447003,
-					title: "List of commands.  Page " + page,
-					fields: []
-				}
-            };
+            embed = new MessageEmbed();
+    		embed.setColor(3447003).setTitle("List of commands.  Page " + page);
         }
 	}
-	if(tosend.embed.fields.length > 0){
-		msg.channel.send(tosend);
+	if(embed.fields.length > 0){
+		msg.channel.send({embeds: [embed]});
 	}
 }
 
@@ -260,13 +244,8 @@ function moduleExists(moduleName) {
 }
 
 function printModules(msg) {
-	let tosend = {
-		embed: {
-			color: 3447003,
-			title: "List of modules",
-			description: ""
-		}
-	};
+	let embed = new MessageEmbed();
+    embed.setColor(3447003).setTitle("List of modules");
 	let modules = "";
 	fs.readdir("./src/modules/", function (err, files) {
 		files.forEach(function (mod) {
@@ -280,8 +259,8 @@ function printModules(msg) {
 				modules += "\n";
 			}
 		});
-		tosend.embed.description = modules;
-		msg.channel.send(tosend);
+		embed.setDescription(modules);
+		msg.channel.send({embeds: [embed]});
 	});
 }
 
